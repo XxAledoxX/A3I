@@ -35,6 +35,9 @@ class ControladorLogin:
     def abrir_ventana_principal(self, usuario: Usuario) -> None:
         """Abre la ventana con el menú del perfil del usuario."""
         self.ventana_principal = VentanaPrincipal(usuario.perfil, usuario.rango)
+        self.ventana_principal.mostrar_usuario(
+            usuario.nombre, usuario.perfil, usuario.nivel, usuario.rango
+        )
         self.ventana_principal.show()
         self.ventana_login.limpiar()
         self.ventana_login.close()
