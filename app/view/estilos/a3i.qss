@@ -196,3 +196,44 @@ QLabel[estado="neutro"] {
     background-color: @neutro_suave;
     color: @pizarra;
 }
+
+/* Login */
+
+*[zona="oscura"] QLabel[tipo="etiqueta"] {
+    color: @fondo;
+    font-size: 20px;
+}
+
+*[zona="oscura"] QLabel[tipo="dato"] {
+    color: @borde;
+    font-size: 12px;
+}
+
+QFrame[tipo="acento"] {
+    background-color: @turquesa;
+    border-radius: 2px;
+}
+
+*[zona="oscura"] QLabel[tipo="chip"] {
+    color: @borde;
+    border: 1px solid @pizarra;
+    border-radius: 12px;
+    padding: 4px 12px;
+    font-size: 13px;
+}
+
+QFrame[tipo="separador"] {
+    background-color: @borde;
+}
+
+QLabel[tipo="nota"] {
+    color: @pizarra;
+    font-size: 13px;
+}
+
+/* Cabecera */
+
+QFrame[tipo="caja_usuario"] {
+    border: 1px solid @pizarra;
+    border-radius: 8px;
+}
