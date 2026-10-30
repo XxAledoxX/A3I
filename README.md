@@ -11,6 +11,8 @@ Equipo: Alejandro Dotor, Arturo Fernández y Aarón Peñafiel.
 - `production`: solo recibe de `main`.
 - `development`: de aquí salen las ramas de tarea (`AD/RF-004-login`, ...) y aquí vuelven por PR.
 
+Cada rama de tarea lleva su archivo en `tareas/` con el nombre del alumno y la tarea (`tareas/ALEJANDRO_RF-022.txt`).
+
 ## Instalación
 
 ```
@@ -19,3 +21,5 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 ```
+
+En Windows el entorno se activa con `.venv\Scripts\activate`.
