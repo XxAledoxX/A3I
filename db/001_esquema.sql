@@ -1,4 +1,4 @@
--- Esquema de la BD a3i (Sprint 1): tablas role y user
+-- Esquema de la BD a3i (Sprint 1): tablas perfil y usuario
 
 SET NAMES utf8mb4;
 
@@ -6,31 +6,30 @@ DROP DATABASE IF EXISTS a3i;
 CREATE DATABASE a3i CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE a3i;
 
--- Perfiles de usuario
-CREATE TABLE `role` (
-    `id_role` INT         NOT NULL AUTO_INCREMENT,
-    `name`    VARCHAR(20) NOT NULL,
-    CONSTRAINT pk_role      PRIMARY KEY (`id_role`),
-    CONSTRAINT uq_role_name UNIQUE (`name`)
+CREATE TABLE perfil (
+    id_perfil INT         NOT NULL AUTO_INCREMENT,
+    nombre    VARCHAR(20) NOT NULL,
+    CONSTRAINT pk_perfil        PRIMARY KEY (id_perfil),
+    CONSTRAINT uq_perfil_nombre UNIQUE (nombre)
 ) ENGINE = InnoDB;
 
-INSERT INTO `role` (`name`) VALUES ('scientist'), ('security'), ('tech');
+INSERT INTO perfil (nombre) VALUES ('cientificos'), ('seguridad'), ('tech');
 
--- Usuarios. failed_attempts y state son para el bloqueo de cuenta
-CREATE TABLE `user` (
-    `id_user`         INT              NOT NULL AUTO_INCREMENT,
-    `name`            VARCHAR(50)      NOT NULL,
-    `login`           VARCHAR(30)      NOT NULL,
-    `password_hash`   VARCHAR(255)     NOT NULL,
-    `failed_attempts` TINYINT UNSIGNED NOT NULL DEFAULT 0,
-    `state`           ENUM('active', 'blocked', 'deactivated') NOT NULL DEFAULT 'active',
-    `rank`            ENUM('worker', 'sector_manager', 'sector_submanager',
-                           'profile_manager', 'profile_submanager') NOT NULL,
-    `sec_level`       TINYINT          NOT NULL DEFAULT 1,
-    `id_role`         INT              NOT NULL,
-    CONSTRAINT pk_user           PRIMARY KEY (`id_user`),
-    CONSTRAINT uq_user_login     UNIQUE (`login`),
-    CONSTRAINT ck_user_sec_level CHECK (`sec_level` BETWEEN 1 AND 4),
-    CONSTRAINT fk_user_role      FOREIGN KEY (`id_role`) REFERENCES `role` (`id_role`)
+-- intentos_fallidos y estado son para el bloqueo de cuenta
+CREATE TABLE usuario (
+    id_usuario        INT              NOT NULL AUTO_INCREMENT,
+    nombre            VARCHAR(50)      NOT NULL,
+    login             VARCHAR(30)      NOT NULL,
+    hash_contrasena   VARCHAR(255)     NOT NULL,
+    intentos_fallidos TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    estado            ENUM('activo', 'bloqueado', 'desactivado') NOT NULL DEFAULT 'activo',
+    rango             ENUM('empleado', 'jefe_sector', 'subjefe_sector',
+                           'jefe_perfil', 'subjefe_perfil') NOT NULL,
+    nivel             TINYINT          NOT NULL DEFAULT 1,
+    id_perfil         INT              NOT NULL,
+    CONSTRAINT pk_usuario       PRIMARY KEY (id_usuario),
+    CONSTRAINT uq_usuario_login UNIQUE (login),
+    CONSTRAINT ck_usuario_nivel CHECK (nivel BETWEEN 1 AND 4),
+    CONSTRAINT fk_usuario_perfil FOREIGN KEY (id_perfil) REFERENCES perfil (id_perfil)
         ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE = InnoDB;
