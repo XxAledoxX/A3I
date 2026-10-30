@@ -24,7 +24,13 @@ def _conectar() -> pymysql.connections.Connection:
     )
 
 
+def _comprobar_parametros(parametros: tuple) -> None:
+    if not isinstance(parametros, tuple):
+        raise TypeError("Los parámetros de la consulta deben ser una tupla")
+
+
 def _consultar_uno(sql: str, parametros: tuple) -> dict | None:
+    _comprobar_parametros(parametros)
     try:
         with _conectar() as conexion, conexion.cursor() as cursor:
             cursor.execute(sql, parametros)
@@ -34,6 +40,7 @@ def _consultar_uno(sql: str, parametros: tuple) -> dict | None:
 
 
 def _ejecutar(sql: str, parametros: tuple) -> None:
+    _comprobar_parametros(parametros)
     try:
         with _conectar() as conexion, conexion.cursor() as cursor:
             cursor.execute(sql, parametros)
