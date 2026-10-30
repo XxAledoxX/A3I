@@ -1,4 +1,20 @@
-"""Consultas a la base de datos. Todo el SQL de la aplicación va aquí."""
+"""Consultas a la base de datos. Todo el SQL de la aplicación va aquí.
+
+Los valores nunca se introducen en el SQL: van con %s y se pasan aparte
+en una tupla, y PyMySQL los escapa.
+
+    _consultar_uno("SELECT ... WHERE login = %s", (login,))
+
+- Nada de f-strings, +, % ni .format() para construir el SQL.
+- Con un solo valor la tupla lleva coma: (login,).
+- Un % que forme parte del SQL se escribe %%.
+- LIKE: el comodín va en el valor, ("%" + texto + "%",).
+- IN: un %s por valor, ", ".join(["%s"] * len(valores)).
+- Los nombres de tabla o columna no se pueden pasar con %s. Si tienen que
+  cambiar, se eligen de una lista fija escrita en el código.
+- Si una consulta escribe en otra tabla o columna, hay que darle permiso a
+  a3i_app en db/002_usuarios_app.sql.
+"""
 
 import pymysql
 from pymysql.cursors import DictCursor
@@ -24,7 +40,13 @@ def _conectar() -> pymysql.connections.Connection:
     )
 
 
+def _comprobar_parametros(parametros: tuple) -> None:
+    if not isinstance(parametros, tuple):
+        raise TypeError("Los parámetros de la consulta deben ser una tupla")
+
+
 def _consultar_uno(sql: str, parametros: tuple) -> dict | None:
+    _comprobar_parametros(parametros)
     try:
         with _conectar() as conexion, conexion.cursor() as cursor:
             cursor.execute(sql, parametros)
@@ -34,6 +56,7 @@ def _consultar_uno(sql: str, parametros: tuple) -> dict | None:
 
 
 def _ejecutar(sql: str, parametros: tuple) -> None:
+    _comprobar_parametros(parametros)
     try:
         with _conectar() as conexion, conexion.cursor() as cursor:
             cursor.execute(sql, parametros)
