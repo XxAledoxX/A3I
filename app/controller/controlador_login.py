@@ -38,6 +38,15 @@ class ControladorLogin:
         self.ventana_principal.mostrar_usuario(
             usuario.nombre, usuario.perfil, usuario.nivel, usuario.rango
         )
+        self.ventana_principal.cerrar_sesion_pedido.connect(self.cerrar_sesion)
         self.ventana_principal.show()
         self.ventana_login.limpiar()
         self.ventana_login.close()
+
+    def cerrar_sesion(self) -> None:
+        """Cierra la ventana principal y vuelve al login."""
+        self.ventana_login.limpiar()
+        self.ventana_login.show()
+        self.ventana_principal.close()
+        self.ventana_principal.deleteLater()
+        self.ventana_principal = None
