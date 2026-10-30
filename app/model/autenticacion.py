@@ -1,11 +1,18 @@
 """Login de usuarios."""
 
+from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerificationError
+
 from app import config
 from app.model import repositorio
 from app.model.usuario import Usuario
 
+# Argon2id con los parámetros por defecto (m=64 MiB, t=3, p=4).
+# Cada hash lleva su propia sal aleatoria y los parámetros dentro
+_hasher = PasswordHasher()
+
 # Hash de prueba para cuando el usuario no existe (así tarda lo mismo)
-HASH_FICTICIO: str = ""
+HASH_FICTICIO: str = _hasher.hash("contrasena-ficticia")
 
 
 def autenticar(login: str, contrasena: str) -> Usuario | None:
@@ -38,15 +45,19 @@ def autenticar(login: str, contrasena: str) -> Usuario | None:
 
 
 def _verificar_contrasena(hash_guardado: str, contrasena: str) -> bool:
-    raise NotImplementedError("RF-005")
+    try:
+        return _hasher.verify(hash_guardado, contrasena)
+    except (VerificationError, InvalidHashError):
+        return False
 
 
 def _necesita_rehash(hash_guardado: str) -> bool:
-    raise NotImplementedError("RF-005")
+    # True si el hash se hizo con otros parámetros que los actuales
+    return _hasher.check_needs_rehash(hash_guardado)
 
 
 def _generar_hash(contrasena: str) -> str:
-    raise NotImplementedError("RF-005")
+    return _hasher.hash(contrasena)
 
 
 def _registrar_fallo(login: str) -> None:
