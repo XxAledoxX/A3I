@@ -16,3 +16,6 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 
 # Intentos fallidos antes de bloquear la cuenta
 MAX_INTENTOS_FALLIDOS = 5
+
+# Minutos sin usar la aplicación antes de cerrar la sesión
+MINUTOS_INACTIVIDAD = 10
