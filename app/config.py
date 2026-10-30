@@ -17,5 +17,11 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 # Intentos fallidos antes de bloquear la cuenta
 MAX_INTENTOS_FALLIDOS = 5
 
+# Formato del login (RF-015): letras sin tilde, números, punto, guion y
+# guion bajo. El máximo es el de la columna usuario.login, VARCHAR(30)
+LONGITUD_MINIMA_LOGIN = 3
+LONGITUD_MAXIMA_LOGIN = 30
+PATRON_LOGIN = rf"[A-Za-z0-9._-]{{{LONGITUD_MINIMA_LOGIN},{LONGITUD_MAXIMA_LOGIN}}}"
+
 # Minutos sin usar la aplicación antes de cerrar la sesión
 MINUTOS_INACTIVIDAD = 10

@@ -2,8 +2,8 @@
 
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import QRegularExpression, Qt, Signal
+from PySide6.QtGui import QPixmap, QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+from app import config
 
 LOGO = Path(__file__).resolve().parent / "estilos" / "logo_icono.png"
 
@@ -118,6 +120,10 @@ class VentanaLogin(QMainWindow):
         etiqueta_usuario.setProperty("tipo", "etiqueta")
         self.usuario = QLineEdit()
         self.usuario.setPlaceholderText("Usuario")
+        # RF-015: no deja escribir caracteres fuera del formato del login
+        self.usuario.setMaxLength(config.LONGITUD_MAXIMA_LOGIN)
+        self.usuario.setValidator(QRegularExpressionValidator(
+            QRegularExpression(config.PATRON_LOGIN), self.usuario))
         etiqueta_contrasena = QLabel("Contraseña")
         etiqueta_contrasena.setProperty("tipo", "etiqueta")
         self.contrasena = QLineEdit()

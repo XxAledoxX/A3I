@@ -4,7 +4,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
 
 from app import config
-from app.model import repositorio
+from app.model import repositorio, validacion
 from app.model.usuario import Usuario
 
 # Argon2id con los parámetros por defecto (m=64 MiB, t=3, p=4).
@@ -17,6 +17,11 @@ HASH_FICTICIO: str = _hasher.hash("contrasena-ficticia")
 
 def autenticar(login: str, contrasena: str) -> Usuario | None:
     """Devuelve el Usuario si el login es correcto, si no None."""
+    # Un login con formato no válido no puede existir: no se consulta la BD.
+    # Que tarde menos no da pistas, el formato es público
+    if not validacion.login_valido(login):
+        return None
+
     fila = repositorio.buscar_por_login(login)
     if fila is None:
         _verificar_contrasena(HASH_FICTICIO, contrasena)
