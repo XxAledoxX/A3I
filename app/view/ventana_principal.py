@@ -34,6 +34,20 @@ MENUS = {
     ],
 }
 
+# Texto que se muestra para cada valor de la BD
+ETIQUETAS_PERFIL = {
+    "cientificos": "Científicos",
+    "seguridad": "Seguridad",
+    "tech": "Tech/Mantenimiento",
+}
+ETIQUETAS_RANGO = {
+    "empleado": "Empleado",
+    "jefe_sector": "Jefe de sector",
+    "subjefe_sector": "Subjefe de sector",
+    "jefe_perfil": "Jefe de perfil",
+    "subjefe_perfil": "Subjefe de perfil",
+}
+
 # Niveles solo lo ven los jefes y subjefes de Seguridad
 SOLO_JEFES = {"Niveles"}
 RANGOS_JEFE = {"jefe_perfil", "subjefe_perfil"}
@@ -108,6 +122,13 @@ class VentanaPrincipal(QMainWindow):
         self.boton_cerrar.clicked.connect(self.cerrar_sesion_pedido)
         layout.addWidget(self.boton_cerrar)
         return cabecera
+
+    def mostrar_usuario(self, nombre: str, perfil: str, nivel: int, rango: str) -> None:
+        """Rellena la cabecera con los datos del usuario."""
+        self.nombre_usuario.setText(nombre)
+        self.detalle_usuario.setText(
+            f"{ETIQUETAS_PERFIL[perfil]} · Nivel {nivel} · {ETIQUETAS_RANGO[rango]}"
+        )
 
     def _menu(self, grupos: list[tuple[str, list[str]]]) -> QFrame:
         menu = QFrame()
