@@ -1,0 +1,7 @@
+# Finales de línea LF para todos
+* text=auto eol=lf
+
+*.png binary
+*.ttf binary
+*.docx binary
+*.pdf binary

@@ -1,0 +1,10 @@
+# Entorno de Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Credenciales
+.env
+
+.DS_Store
