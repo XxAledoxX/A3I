@@ -9,11 +9,11 @@ Hay que repetirlo después de cada `git pull` que cambie algo en `db/`.
 
 ## Usuarios de prueba
 
-| Usuario | Contraseña | Perfil | Nivel |
-|---|---|---|---|
-| `cientifico1` | `Cientifico1.Prueba` | Científicos | 2 |
-| `seguridad1` | `Seguridad1.Prueba` | Seguridad | 1 |
-| `tech1` | `Tech1.Prueba` | Tech | 1 |
+| Usuario | Contraseña | Perfil | Nivel | Sector |
+|---|---|---|---|---|
+| `cientifico1` | `Cientifico1.Prueba` | Científicos | 2 | cientifico |
+| `seguridad1` | `Seguridad1.Prueba` | Seguridad | 1 | general |
+| `tech1` | `Tech1.Prueba` | Tech | 1 | general |
 
 ## Hash de un usuario nuevo
 

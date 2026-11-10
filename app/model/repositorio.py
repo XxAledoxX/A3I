@@ -67,10 +67,8 @@ def _ejecutar(sql: str, parametros: tuple) -> None:
 def buscar_por_login(login: str) -> dict | None:
     sql = """
         SELECT u.id_usuario, u.nombre, u.login, u.hash_contrasena,
-               u.intentos_fallidos, u.estado, u.rango, u.nivel,
-               p.nombre AS perfil
+               u.intentos_fallidos, u.estado, u.rango, u.nivel, u.perfil
         FROM usuario u
-        JOIN perfil p ON p.id_perfil = u.id_perfil
         WHERE u.login = %s
     """
     return _consultar_uno(sql, (login,))
