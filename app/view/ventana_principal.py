@@ -16,6 +16,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.view.panel_planta import PanelPlanta
+from app.view.panel_seguridad import PanelSeguridad
+
 LOGO = Path(__file__).resolve().parent / "estilos" / "logo_icono.png"
 
 # Secciones del menú de cada perfil (sacadas de los mockups)
@@ -32,6 +35,13 @@ MENUS = {
         ("Equipos y cuentas", ["Dispositivos", "Configuración", "Cuentas"]),
         ("Gestión", ["Solicitudes y permisos", "Registro"]),
     ],
+}
+
+# Sección del menú donde va el panel de cada perfil (Tech solo ve la llama)
+PANELES = {
+    "Panel de planta": PanelPlanta,
+    "Cámaras": PanelSeguridad,
+    "Dispositivos": PanelPlanta,
 }
 
 # Texto que se muestra para cada valor de la BD
@@ -81,6 +91,8 @@ class VentanaPrincipal(QMainWindow):
 
         cuerpo = QHBoxLayout()
         cuerpo.setSpacing(0)
+        # El controlador le pasa las lecturas al panel del perfil
+        self.panel: PanelPlanta | PanelSeguridad | None = None
         self.paginas = QStackedWidget()
         cuerpo.addWidget(self._menu(secciones_menu(perfil, rango)))
         cuerpo.addWidget(self.paginas, 1)
@@ -158,7 +170,11 @@ class VentanaPrincipal(QMainWindow):
         return menu
 
     def _pagina(self, titulo: str) -> QWidget:
-        # De momento cada sección es una página vacía
+        if titulo in PANELES:
+            self.panel = PANELES[titulo](titulo)
+            return self.panel
+
+        # El resto de secciones, de momento, son páginas vacías
         pagina = QWidget()
         layout = QVBoxLayout(pagina)
         layout.setContentsMargins(32, 28, 32, 28)
