@@ -70,6 +70,15 @@ QLabel[tipo="valor"] {
     color: @azul_marino;
 }
 
+/* Recuadro de la cámara mientras no hay vídeo */
+QLabel[tipo="video"] {
+    background-color: @azul_marino;
+    color: @borde;
+    border-radius: 8px;
+    font-family: "Inter";
+    font-weight: 600;
+}
+
 QLabel[tipo="error"] {
     background-color: @rojo_suave;
     color: @rojo_texto;

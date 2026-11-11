@@ -35,12 +35,21 @@ def estado_lectura(lectura: dict | None) -> tuple[str, str]:
         return "neutro", "Sin datos"
     valor = lectura["valor"]
     if lectura["variable"] == "llama":
-        return ("alarma", "Fuego detectado") if valor else ("ok", "Sin fuego")
+        return ("alarma", "Fuego detectado") if valor else ("ok", "Normal")
 
     minimo, maximo = lectura.get("minimo_normal"), lectura.get("maximo_normal")
     if (minimo is not None and valor < minimo) or (maximo is not None and valor > maximo):
         return "alarma", "Fuera de rango"
     return "ok", "Normal"
+
+
+def poner_estado(etiqueta: QLabel, estado: str, texto: str) -> None:
+    """Cambia el texto y el color de una etiqueta de estado."""
+    etiqueta.setText(texto)
+    etiqueta.setProperty("estado", estado)
+    # Qt no vuelve a aplicar el estilo solo al cambiar una propiedad
+    etiqueta.style().unpolish(etiqueta)
+    etiqueta.style().polish(etiqueta)
 
 
 def formatear_numero(valor) -> str:
@@ -97,12 +106,7 @@ class TarjetaVariable(QFrame):
         self.actualizar(None)
 
     def actualizar(self, lectura: dict | None) -> None:
-        estado, texto = estado_lectura(lectura)
-        self.estado.setText(texto)
-        self.estado.setProperty("estado", estado)
-        # Qt no vuelve a aplicar el estilo solo al cambiar una propiedad
-        self.estado.style().unpolish(self.estado)
-        self.estado.style().polish(self.estado)
+        poner_estado(self.estado, *estado_lectura(lectura))
         if lectura is not None and lectura.get("valor") is not None:
             self.valor.setText(texto_valor(lectura))
             self.detalle.setText(texto_detalle(lectura))
