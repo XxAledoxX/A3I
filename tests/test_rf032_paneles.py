@@ -15,6 +15,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtWidgets import QApplication
 
+from app.view.panel_equipos import PanelEquipos
 from app.view.panel_planta import PanelPlanta, estado_lectura, formatear_numero
 from app.view.panel_seguridad import PanelSeguridad, estado_equipo, texto_barrera
 from app.view.ventana_principal import VentanaPrincipal
@@ -161,7 +162,7 @@ class PruebasVentanaPrincipal(unittest.TestCase):
         esperado = {
             "cientificos": PanelPlanta,
             "seguridad": PanelSeguridad,
-            "tech": PanelPlanta,
+            "tech": PanelEquipos,
         }
         for perfil, clase in esperado.items():
             with self.subTest(perfil=perfil):

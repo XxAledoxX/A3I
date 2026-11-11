@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.view.panel_equipos import PanelEquipos
 from app.view.panel_planta import PanelPlanta
 from app.view.panel_seguridad import PanelSeguridad
 
@@ -37,11 +38,11 @@ MENUS = {
     ],
 }
 
-# Sección del menú donde va el panel de cada perfil (Tech solo ve la llama)
+# Sección del menú donde va el panel de cada perfil
 PANELES = {
     "Panel de planta": PanelPlanta,
     "Cámaras": PanelSeguridad,
-    "Dispositivos": PanelPlanta,
+    "Dispositivos": PanelEquipos,
 }
 
 # Texto que se muestra para cada valor de la BD
@@ -92,7 +93,7 @@ class VentanaPrincipal(QMainWindow):
         cuerpo = QHBoxLayout()
         cuerpo.setSpacing(0)
         # El controlador le pasa las lecturas al panel del perfil
-        self.panel: PanelPlanta | PanelSeguridad | None = None
+        self.panel: PanelPlanta | PanelSeguridad | PanelEquipos | None = None
         self.paginas = QStackedWidget()
         cuerpo.addWidget(self._menu(secciones_menu(perfil, rango)))
         cuerpo.addWidget(self.paginas, 1)
