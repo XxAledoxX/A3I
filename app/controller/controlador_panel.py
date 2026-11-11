@@ -8,14 +8,14 @@ from PySide6.QtCore import QObject, QThread, QTimer, Signal, Slot
 from app import config
 from app.model.repositorio import ErrorBaseDatos
 
-# Función que devuelve (lecturas, actuadores). La de verdad llega con RF-031
-ObtenerDatos = Callable[[], tuple[list[dict], list[dict]]]
+# Función que devuelve (lecturas, actuadores, equipos). La de verdad llega con RF-031
+ObtenerDatos = Callable[[], tuple[list[dict], list[dict], list[dict]]]
 
 
 class Trabajador(QObject):
     """Hace la consulta en un hilo aparte y avisa con una señal."""
 
-    datos_listos = Signal(list, list)
+    datos_listos = Signal(list, list, list)
     fallo = Signal()
 
     def __init__(self, obtener_datos: ObtenerDatos) -> None:
@@ -25,11 +25,11 @@ class Trabajador(QObject):
     @Slot()
     def cargar(self) -> None:
         try:
-            lecturas, actuadores = self.obtener_datos()
+            lecturas, actuadores, equipos = self.obtener_datos()
         except ErrorBaseDatos:
             self.fallo.emit()
             return
-        self.datos_listos.emit(lecturas, actuadores)
+        self.datos_listos.emit(lecturas, actuadores, equipos)
 
 
 class ControladorPanel(QObject):
@@ -78,12 +78,15 @@ class ControladorPanel(QObject):
         self.ocupado = True
         self.pedir_datos.emit()
 
-    def _mostrar(self, lecturas: list[dict], actuadores: list[dict]) -> None:
+    def _mostrar(self, lecturas: list[dict], actuadores: list[dict],
+                 equipos: list[dict]) -> None:
         self.ocupado = False
         self.panel.mostrar_lecturas(lecturas, datetime.now().strftime("%H:%M:%S"))
-        # Solo el panel de Seguridad muestra actuadores
+        # Seguridad muestra actuadores y Tech, el estado de los equipos
         if hasattr(self.panel, "mostrar_actuadores"):
             self.panel.mostrar_actuadores(actuadores)
+        if hasattr(self.panel, "mostrar_equipos"):
+            self.panel.mostrar_equipos(equipos)
 
     def _fallo(self) -> None:
         self.ocupado = False
@@ -111,7 +114,7 @@ if __name__ == "__main__":
         ("caudal", "L/min", 8, 15, "cientifico"),
     ]
 
-    def datos_inventados() -> tuple[list[dict], list[dict]]:
+    def datos_inventados() -> tuple[list[dict], list[dict], list[dict]]:
         ahora = datetime.now()
         lecturas = []
         for nombre, unidad, minimo, maximo, sector in variables:
@@ -129,7 +132,7 @@ if __name__ == "__main__":
             "fecha_hora": ahora, "minimo_normal": None, "maximo_normal": None,
             "sector": "critico",
         })
-        return lecturas, []
+        return lecturas, [], []
 
     app = QApplication(sys.argv)
     aplicar_estilos(app)

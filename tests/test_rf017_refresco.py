@@ -25,6 +25,7 @@ app = QApplication.instance() or QApplication([])
 
 LECTURAS = [{"variable": "caudal", "valor": 11}]
 ACTUADORES = [{"nombre": "barrera", "posicion": 0}]
+EQUIPOS = [{"nombre": "barrera", "sector": "general", "estado": "operativo"}]
 
 
 def esperar(segundos: float) -> None:
@@ -41,12 +42,16 @@ class PanelFalso:
     def __init__(self) -> None:
         self.lecturas = []
         self.actuadores = []
+        self.equipos = []
 
     def mostrar_lecturas(self, lecturas: list[dict], hora: str = "") -> None:
         self.lecturas.append(lecturas)
 
     def mostrar_actuadores(self, actuadores: list[dict]) -> None:
         self.actuadores.append(actuadores)
+
+    def mostrar_equipos(self, equipos: list[dict]) -> None:
+        self.equipos.append(equipos)
 
 
 class PanelSinActuadores:
@@ -71,7 +76,7 @@ class PruebasRefresco(unittest.TestCase):
     def datos(self):
         self.llamadas += 1
         self.hilos.add(threading.get_ident())
-        return LECTURAS, ACTUADORES
+        return LECTURAS, ACTUADORES, EQUIPOS
 
     def crear(self, panel, obtener_datos=None) -> ControladorPanel:
         controlador = ControladorPanel(panel, obtener_datos or self.datos)
@@ -84,6 +89,7 @@ class PruebasRefresco(unittest.TestCase):
         esperar(0.02)
         self.assertEqual(panel.lecturas, [LECTURAS])
         self.assertEqual(panel.actuadores, [ACTUADORES])
+        self.assertEqual(panel.equipos, [EQUIPOS])
 
     def test_refresca_periodicamente(self):
         panel = PanelFalso()
@@ -113,7 +119,7 @@ class PruebasRefresco(unittest.TestCase):
             maximo = max(maximo, en_curso)
             time.sleep(0.2)
             en_curso -= 1
-            return LECTURAS, ACTUADORES
+            return LECTURAS, ACTUADORES, EQUIPOS
 
         panel = PanelFalso()
         self.crear(panel, lenta).iniciar()
@@ -141,7 +147,7 @@ class PruebasRefresco(unittest.TestCase):
         def falla_una_vez():
             if respuestas and respuestas.pop(0):
                 raise ErrorBaseDatos("caída")
-            return LECTURAS, ACTUADORES
+            return LECTURAS, ACTUADORES, EQUIPOS
 
         panel = PanelFalso()
         self.crear(panel, falla_una_vez).iniciar()
