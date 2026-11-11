@@ -15,6 +15,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 from PySide6.QtWidgets import QApplication
 
+from app.view.panel_equipos import PanelEquipos
 from app.view.panel_planta import PanelPlanta, estado_lectura, formatear_numero
 from app.view.panel_seguridad import PanelSeguridad, estado_equipo, texto_barrera
 from app.view.ventana_principal import VentanaPrincipal
@@ -156,12 +157,62 @@ class PruebasPanelSeguridad(unittest.TestCase):
         self.assertEqual(self.panel.camara.estado.text(), "Sin datos")
 
 
+def equipo(nombre: str, sector: str, estado: str = "operativo") -> dict:
+    return {"nombre": nombre, "sector": sector, "estado": estado}
+
+
+class PruebasPanelEquipos(unittest.TestCase):
+    def setUp(self):
+        self.panel = PanelEquipos("Dispositivos")
+        self.equipos = [
+            equipo("barrera", "general"),
+            equipo("camara", "general", "sin_conexion"),
+            equipo("sensor_aire", "cientifico", "a_revisar"),
+        ]
+
+    def test_sin_equipos_muestra_aviso(self):
+        self.panel.mostrar_equipos([])
+        self.assertFalse(self.panel.sin_datos.isHidden())
+        self.assertEqual(self.panel.estados, {})
+
+    def test_una_fila_por_equipo_recibido(self):
+        # tech1 (sector general) solo recibe la barrera y la cámara
+        self.panel.mostrar_equipos(self.equipos[:2])
+        self.assertEqual(set(self.panel.estados), {"barrera", "camara"})
+        self.assertTrue(self.panel.sin_datos.isHidden())
+
+    def test_estado_y_color_de_cada_equipo(self):
+        self.panel.mostrar_equipos(self.equipos)
+        self.assertEqual(self.panel.estados["barrera"].text(), "Operativo")
+        self.assertEqual(self.panel.estados["barrera"].property("estado"), "ok")
+        self.assertEqual(self.panel.estados["camara"].property("estado"), "neutro")
+        self.assertEqual(self.panel.estados["sensor_aire"].property("estado"), "aviso")
+
+    def test_refresco_no_crea_filas_nuevas(self):
+        self.panel.mostrar_equipos(self.equipos)
+        antes = self.panel.estados["barrera"]
+        self.equipos[0] = equipo("barrera", "general", "mantenimiento")
+        self.panel.mostrar_equipos(self.equipos)
+        self.assertIs(self.panel.estados["barrera"], antes)
+        self.assertEqual(antes.text(), "En mantenimiento")
+
+    def test_cambian_los_equipos(self):
+        self.panel.mostrar_equipos(self.equipos)
+        self.panel.mostrar_equipos([equipo("turbina", "critico")])
+        self.assertEqual(set(self.panel.estados), {"turbina"})
+
+    def test_llama(self):
+        self.panel.mostrar_lecturas([lectura("llama", 1, sector="critico")], "17:42:05")
+        self.assertEqual(self.panel.llama.estado.text(), "Fuego detectado")
+        self.assertIn("17:42:05", self.panel.actualizado.text())
+
+
 class PruebasVentanaPrincipal(unittest.TestCase):
     def test_cada_perfil_abre_en_su_panel(self):
         esperado = {
             "cientificos": PanelPlanta,
             "seguridad": PanelSeguridad,
-            "tech": PanelPlanta,
+            "tech": PanelEquipos,
         }
         for perfil, clase in esperado.items():
             with self.subTest(perfil=perfil):
