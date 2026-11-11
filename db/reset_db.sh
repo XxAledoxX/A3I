@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Borra la BD a3i y la vuelve a crear con los scripts de db/
+# Borra las BD a3i y a3i_lecturas y las vuelve a crear con los scripts de db/
 # Uso: ./db/reset_db.sh (pide la contraseña de root)
 set -euo pipefail
 
@@ -23,5 +23,7 @@ scripts=("$raiz"/db/[0-9][0-9][0-9]_*.sql)
 # La contraseña se pasa por la entrada estándar para que no salga en ps
 {
     printf "SET @a3i_app_password = '%s';\n" "$password"
+    # Primero a3i_lecturas: su FK a a3i.variable impide borrar a3i
+    echo "DROP DATABASE IF EXISTS a3i_lecturas;"
     cat "${scripts[@]}"
 } | mariadb -u root -p
