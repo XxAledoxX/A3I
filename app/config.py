@@ -25,3 +25,6 @@ PATRON_LOGIN = rf"[A-Za-z0-9._-]{{{LONGITUD_MINIMA_LOGIN},{LONGITUD_MAXIMA_LOGIN
 
 # Minutos sin usar la aplicación antes de cerrar la sesión
 MINUTOS_INACTIVIDAD = 10
+
+# Cada cuántos segundos se vuelven a pedir los datos del panel
+SEGUNDOS_REFRESCO = 5
