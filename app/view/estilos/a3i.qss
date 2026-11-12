@@ -62,6 +62,23 @@ QLabel[tipo="dato"] {
     font-family: "Cascadia Code";
 }
 
+/* Valor grande de las tarjetas del panel */
+QLabel[tipo="valor"] {
+    font-family: "Cascadia Code";
+    font-weight: 600;
+    font-size: 28px;
+    color: @azul_marino;
+}
+
+/* Recuadro de la cámara mientras no hay vídeo */
+QLabel[tipo="video"] {
+    background-color: @azul_marino;
+    color: @borde;
+    border-radius: 8px;
+    font-family: "Inter";
+    font-weight: 600;
+}
+
 QLabel[tipo="error"] {
     background-color: @rojo_suave;
     color: @rojo_texto;
@@ -75,6 +92,16 @@ QFrame[tipo="tarjeta"] {
     background-color: @blanco;
     border: 1px solid @borde;
     border-radius: 12px;
+}
+
+/* Zona con scroll de los paneles: sin borde y con el fondo de la ventana */
+QScrollArea[tipo="panel"] {
+    border: none;
+    background-color: transparent;
+}
+
+QScrollArea[tipo="panel"] > QWidget > QWidget {
+    background-color: transparent;
 }
 
 /* Campos de formulario */
