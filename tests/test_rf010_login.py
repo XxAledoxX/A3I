@@ -39,7 +39,7 @@ DATOS_ESPERADOS = {
 }
 
 # Logins con formato válido que no están en la BD
-INEXISTENTES = ("noexiste", "cientifico2", "admin", "root")
+INEXISTENTES = ("noexiste", "cientifico99", "admin", "root")
 
 USUARIO_EJEMPLO = Usuario(
     id_usuario=3, nombre="Daniel Ortega", login="tech1",

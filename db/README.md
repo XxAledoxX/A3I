@@ -9,11 +9,21 @@ Hay que repetirlo después de cada `git pull` que cambie algo en `db/`.
 
 ## Usuarios de prueba
 
-| Usuario | Contraseña | Perfil | Nivel | Sector |
-|---|---|---|---|---|
-| `cientifico1` | `Cientifico1.Prueba` | Científicos | 2 | cientifico |
-| `seguridad1` | `Seguridad1.Prueba` | Seguridad | 1 | general |
-| `tech1` | `Tech1.Prueba` | Tech | 1 | general |
+| Usuario | Contraseña | Perfil | Rango | Nivel | Sector |
+|---|---|---|---|---|---|
+| `cientifico1` | `Cientifico1.Prueba` | Científicos | Empleado | 2 | cientifico |
+| `seguridad1` | `Seguridad1.Prueba` | Seguridad | Empleado | 1 | general |
+| `tech1` | `Tech1.Prueba` | Tech | Empleado | 1 | general |
+| `cientifico2` | `Cientifico2.Prueba` | Científicos | Empleado | 3 | critico |
+| `jefesector_cien` | `Jefesector_cien.Prueba` | Científicos | Jefe de sector | 3 | cientifico |
+| `subjefe_cien` | `Subjefe_cien.Prueba` | Científicos | Subjefe de perfil | 2 | cientifico |
+| `jefe_cien` | `Jefe_cien.Prueba` | Científicos | Jefe de perfil | 3 | critico |
+| `jefesector_seg` | `Jefesector_seg.Prueba` | Seguridad | Jefe de sector | 2 | general |
+| `subjefe_seg` | `Subjefe_seg.Prueba` | Seguridad | Subjefe de perfil | 4 | general |
+| `jefe_seg` | `Jefe_seg.Prueba` | Seguridad | Jefe de perfil | 4 | general |
+| `tech2` | `Tech2.Prueba` | Tech | Empleado | 1 | critico |
+| `subjefe_tech` | `Subjefe_tech.Prueba` | Tech | Subjefe de perfil | 2 | cientifico |
+| `jefe_tech` | `Jefe_tech.Prueba` | Tech | Jefe de perfil | 3 | critico |
 
 ## Hash de un usuario nuevo
 
