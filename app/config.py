@@ -14,6 +14,15 @@ DB_NAME = os.getenv("DB_NAME", "a3i")
 DB_USER = os.getenv("DB_USER", "a3i_app")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 
+# Usuarios de BD de RF-013: uno para el login y uno por perfil
+DB_USUARIO_LOGIN = "a3i_login"
+DB_PASSWORD_LOGIN = os.getenv("DB_PASSWORD_LOGIN", "")
+USUARIOS_PERFIL = {
+    "cientificos": ("a3i_cientificos", os.getenv("DB_PASSWORD_CIENTIFICOS", "")),
+    "seguridad": ("a3i_seguridad", os.getenv("DB_PASSWORD_SEGURIDAD", "")),
+    "tech": ("a3i_tech", os.getenv("DB_PASSWORD_TECH", "")),
+}
+
 # Intentos fallidos antes de bloquear la cuenta
 MAX_INTENTOS_FALLIDOS = 5
 

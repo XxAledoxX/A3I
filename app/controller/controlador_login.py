@@ -77,6 +77,7 @@ class ControladorLogin:
         """Cierra la ventana principal y vuelve al login."""
         self.temporizador.stop()
         QApplication.instance().removeEventFilter(self.detector)
+        autenticacion.cerrar_sesion()
 
         self.ventana_login.limpiar()
         self.ventana_login.show()
