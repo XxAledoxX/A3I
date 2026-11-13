@@ -152,3 +152,45 @@ GRANT EXECUTE ON PROCEDURE a3i.estado_equipos TO
     'a3i_tech'@'localhost', 'a3i_tech'@'127.0.0.1';
 
 FLUSH PRIVILEGES;
+
+-- Validación de lecturas (RF-030): se rechazan los valores físicamente
+-- imposibles. Los que solo se salen del rango normal sí se guardan, porque
+-- son las alertas del Sprint 3
+USE a3i_lecturas;
+
+DELIMITER //
+
+CREATE TRIGGER validar_lectura BEFORE INSERT ON lectura
+FOR EACH ROW
+BEGIN
+    DECLARE v_nombre VARCHAR(50);
+    DECLARE v_minimo DECIMAL(7,2);
+    DECLARE v_maximo DECIMAL(7,2);
+    DECLARE v_mensaje VARCHAR(128);
+
+    SELECT nombre INTO v_nombre FROM a3i.variable WHERE id_variable = NEW.id_variable;
+
+    CASE
+        WHEN v_nombre IN ('humedad_interior', 'humedad_ambiente') THEN
+            SET v_minimo = 0, v_maximo = 100;
+        WHEN v_nombre IN ('temperatura_interior', 'temperatura_ambiente') THEN
+            SET v_minimo = -40, v_maximo = 150;
+        WHEN v_nombre = 'calidad_aire' THEN
+            SET v_minimo = 0, v_maximo = 10000;
+        WHEN v_nombre = 'caudal' THEN
+            SET v_minimo = 0, v_maximo = 100;
+        WHEN v_nombre = 'llama' THEN
+            SET v_minimo = 0, v_maximo = 1;
+        ELSE
+            -- Variable sin límites: se acepta
+            SET v_minimo = NULL, v_maximo = NULL;
+    END CASE;
+
+    IF NEW.valor < v_minimo OR NEW.valor > v_maximo
+       OR (v_nombre = 'llama' AND NEW.valor NOT IN (0, 1)) THEN
+        SET v_mensaje = CONCAT('Lectura imposible de ', v_nombre, ': ', NEW.valor);
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = v_mensaje;
+    END IF;
+END //
+
+DELIMITER ;
