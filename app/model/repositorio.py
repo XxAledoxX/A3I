@@ -48,6 +48,11 @@ def _conectar(usuario: str | None = None,
         cursorclass=DictCursor,
         autocommit=True,
         connect_timeout=5,
+        # Siempre cifrado: se comprueba que el certificado del servidor lo firma
+        # nuestra CA y que es para el host al que nos conectamos
+        ssl_ca=config.DB_SSL_CA,
+        ssl_verify_cert=True,
+        ssl_verify_identity=True,
     )
 
 
