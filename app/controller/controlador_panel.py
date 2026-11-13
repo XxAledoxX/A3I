@@ -36,11 +36,12 @@ class ControladorPanel(QObject):
     """Refresca el panel cada config.SEGUNDOS_REFRESCO segundos.
 
     Emite error_conexion si falla la consulta; el panel se queda con los
-    últimos datos.
+    últimos datos. Emite datos_recibidos cada vez que llegan datos.
     """
 
     pedir_datos = Signal()
     error_conexion = Signal()
+    datos_recibidos = Signal()
 
     def __init__(self, panel, obtener_datos: ObtenerDatos) -> None:
         super().__init__()
@@ -87,6 +88,7 @@ class ControladorPanel(QObject):
             self.panel.mostrar_actuadores(actuadores)
         if hasattr(self.panel, "mostrar_equipos"):
             self.panel.mostrar_equipos(equipos)
+        self.datos_recibidos.emit()
 
     def _fallo(self) -> None:
         self.ocupado = False
