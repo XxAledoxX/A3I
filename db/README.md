@@ -2,10 +2,32 @@
 
 Para crear o resetear la BD:
 
-1. Copia `.env.example` a `.env` y pon una contraseña en `DB_PASSWORD` (por ejemplo con `openssl rand -hex 24`).
+1. Copia `.env.example` a `.env` y pon una contraseña distinta en cada `DB_PASSWORD...` (por ejemplo con `openssl rand -hex 24`).
+
+   Para generarlas todas de una vez:
+
+   ```
+   for v in DB_PASSWORD DB_PASSWORD_LOGIN DB_PASSWORD_CIENTIFICOS DB_PASSWORD_SEGURIDAD DB_PASSWORD_TECH; do
+       sed -i.bak "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env
+   done
+   rm .env.bak
+   ```
+
+   Si ya tenías un `.env`, copia antes las líneas nuevas de `.env.example`: el bucle solo rellena las que existen.
 2. Ejecuta `./db/reset_db.sh` y escribe la contraseña de root de MariaDB.
 
 Hay que repetirlo después de cada `git pull` que cambie algo en `db/`.
+
+## Usuarios de BD
+
+La aplicación no lee las tablas: solo ejecuta procedimientos (`db/007_control_acceso.sql`).
+
+| Usuario | Para qué | Puede ejecutar |
+|---|---|---|
+| `a3i_login` | Iniciar sesión | `buscar_usuario`, `registrar_fallo`, `actualizar_intentos`, `actualizar_hash` |
+| `a3i_cientificos`, `a3i_seguridad`, `a3i_tech` | Datos tras el login, según el perfil | `ultimas_lecturas`, `estado_actuadores`, `estado_equipos` |
+
+Los procedimientos de datos solo devuelven algo si el usuario de BD que llama es el del perfil del usuario: desde DBeaver con root salen vacíos.
 
 ## Usuarios de prueba
 
