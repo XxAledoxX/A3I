@@ -56,3 +56,42 @@ Las contraseñas se guardan con Argon2id (RF-005), nunca en claro. Para añadir 
 ```
 
 En Windows, `.venv\Scripts\python` en vez de `.venv/bin/python`. La contraseña se pide sin mostrarla, así no queda en el historial de la terminal. Cada vez sale un hash distinto porque lleva una sal aleatoria; es normal. Apunta la contraseña en la tabla de arriba.
+
+## TLS
+
+La app solo se conecta cifrado (RF-016): comprueba que el certificado del servidor lo firma nuestra autoridad propia (CA) y que es para `127.0.0.1`. Los usuarios de BD de la app tienen `REQUIRE SSL` (`db/008_tls.sql`), y el reset falla con un aviso si MariaDB no tiene TLS configurado. Hay que hacerlo una vez en cada equipo:
+
+1. Genera los certificados (quedan en `db/certificados/`, que no se sube):
+
+   ```
+   ./db/generar_certificados.sh
+   ```
+
+2. Configura MariaDB con ellos y reinícialo.
+
+   **Arch.** MariaDB se ejecuta como el usuario `mysql`, que no puede leer tu carpeta personal, así que se copian a `/etc/my.cnf.d/certificados/`. La configuración va en un archivo propio dentro de `/etc/my.cnf.d/` (es lo mismo que añadirla a `server.cnf`):
+
+   ```
+   sudo install -d -o mysql -g mysql -m 750 /etc/my.cnf.d/certificados
+   sudo install -o mysql -g mysql -m 644 db/certificados/ca.pem db/certificados/servidor.pem /etc/my.cnf.d/certificados/
+   sudo install -o mysql -g mysql -m 600 db/certificados/servidor-key.pem /etc/my.cnf.d/certificados/
+   printf '[mariadb]\nssl_ca = /etc/my.cnf.d/certificados/ca.pem\nssl_cert = /etc/my.cnf.d/certificados/servidor.pem\nssl_key = /etc/my.cnf.d/certificados/servidor-key.pem\ntls_version = TLSv1.2,TLSv1.3\n' | sudo tee /etc/my.cnf.d/a3i-tls.cnf
+   sudo systemctl restart mariadb
+   ```
+
+   **macOS (Homebrew).** MariaDB se ejecuta con tu usuario y puede leer los certificados donde están. Desde la raíz del proyecto (en un Mac con Intel el archivo es `/usr/local/etc/my.cnf`):
+
+   ```
+   printf '\n[mariadb]\nssl_ca = %s/db/certificados/ca.pem\nssl_cert = %s/db/certificados/servidor.pem\nssl_key = %s/db/certificados/servidor-key.pem\ntls_version = TLSv1.2,TLSv1.3\n' "$PWD" "$PWD" "$PWD" >> /opt/homebrew/etc/my.cnf
+   brew services restart mariadb
+   ```
+
+3. Comprueba que MariaDB ha cargado el certificado (debe salir la ruta de `servidor.pem`):
+
+   ```
+   mariadb -u root -p -e "SELECT @@ssl_cert, @@tls_version"
+   ```
+
+   Si entras sin contraseña por `unix_socket` (como en el Mac de Alejandro), quita `-u root -p` aquí y en el reset: root no necesita TLS por el socket, solo los usuarios de la app.
+
+4. Añade al `.env` la línea `DB_SSL_CA=db/certificados/ca.pem` (está en `.env.example`), ejecuta el reset y las pruebas.
