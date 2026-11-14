@@ -1,7 +1,7 @@
 """RF-010: pruebas de inicio de sesión (Sprint 1).
 
 Solo credenciales válidas, contraseña errónea y usuario inexistente. El
-bloqueo de cuenta y las sesiones quedan para otro sprint.
+bloqueo de cuenta y las sesiones están en test_rf010_bloqueo_sesion.py.
 
 Las pruebas con BD usan la de prueba (./db/reset_db.sh) y se saltan si
 MariaDB no está disponible. Un fallo suma un intento a la cuenta, así que
