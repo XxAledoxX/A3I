@@ -13,7 +13,7 @@ REPOSITORIO = CARPETA_APP / "model" / "repositorio.py"
 
 # Funciones de repositorio.py que reciben el SQL como primer argumento.
 # Son las únicas que pueden llamar a cursor.execute
-FUNCIONES_SQL = {"_consultar_uno", "_ejecutar"}
+FUNCIONES_SQL = {"_consultar_uno", "_consultar_todos", "_ejecutar"}
 
 
 def _leer(ruta: Path) -> ast.Module:

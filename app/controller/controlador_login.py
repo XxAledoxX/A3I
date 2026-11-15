@@ -1,10 +1,13 @@
 """Controlador del login: une la ventana de login con la autenticación."""
 
+from functools import partial
+
 from PySide6.QtCore import QEvent, QObject, QTimer
 from PySide6.QtWidgets import QApplication
 
 from app import config
-from app.model import autenticacion
+from app.controller.controlador_panel import ControladorPanel
+from app.model import autenticacion, repositorio
 from app.model.repositorio import ErrorBaseDatos
 from app.model.usuario import Usuario
 from app.view.ventana_login import VentanaLogin
@@ -36,6 +39,7 @@ class ControladorLogin:
     def __init__(self) -> None:
         self.ventana_login = VentanaLogin()
         self.ventana_principal: VentanaPrincipal | None = None
+        self.controlador_panel: ControladorPanel | None = None
         self.ventana_login.login_pedido.connect(self.iniciar_sesion)
 
         self.temporizador = QTimer()
@@ -72,11 +76,32 @@ class ControladorLogin:
         self.temporizador.setInterval(int(config.MINUTOS_INACTIVIDAD * 60 * 1000))
         self.temporizador.start()
         QApplication.instance().installEventFilter(self.detector)
+        self.iniciar_refresco(usuario)
+
+    def iniciar_refresco(self, usuario: Usuario) -> None:
+        """Pide los datos del panel cada pocos segundos (RF-017) con su usuario."""
+        ventana = self.ventana_principal
+        if ventana.panel is None:
+            return
+        self.controlador_panel = ControladorPanel(
+            ventana.panel, partial(repositorio.datos_panel, usuario.id_usuario)
+        )
+        self.controlador_panel.error_conexion.connect(
+            partial(ventana.mostrar_sin_conexion, True)
+        )
+        self.controlador_panel.datos_recibidos.connect(
+            partial(ventana.mostrar_sin_conexion, False)
+        )
+        self.controlador_panel.iniciar()
 
     def cerrar_sesion(self) -> None:
         """Cierra la ventana principal y vuelve al login."""
         self.temporizador.stop()
         QApplication.instance().removeEventFilter(self.detector)
+        if self.controlador_panel is not None:
+            self.controlador_panel.parar()
+            self.controlador_panel = None
+        autenticacion.cerrar_sesion()
 
         self.ventana_login.limpiar()
         self.ventana_login.show()
