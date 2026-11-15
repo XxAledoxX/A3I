@@ -143,6 +143,35 @@ def actualizar_hash(id_usuario: int, nuevo_hash: str) -> None:
     )
 
 
+# Datos del panel, con el usuario de BD del perfil
+
+def ultimas_lecturas(id_usuario: int) -> list[dict]:
+    return _consultar_todos(
+        "CALL ultimas_lecturas(%s)", (id_usuario,), _credenciales_perfil()
+    )
+
+
+def estado_actuadores(id_usuario: int) -> list[dict]:
+    return _consultar_todos(
+        "CALL estado_actuadores(%s)", (id_usuario,), _credenciales_perfil()
+    )
+
+
+def estado_equipos(id_usuario: int) -> list[dict]:
+    return _consultar_todos(
+        "CALL estado_equipos(%s)", (id_usuario,), _credenciales_perfil()
+    )
+
+
+def datos_panel(id_usuario: int) -> tuple[list[dict], list[dict], list[dict]]:
+    """Lo que pide el panel en cada refresco: lecturas, actuadores y equipos."""
+    return (
+        ultimas_lecturas(id_usuario),
+        estado_actuadores(id_usuario),
+        estado_equipos(id_usuario),
+    )
+
+
 # Simulador de lecturas (RF-029), con a3i_simulador
 
 def _credenciales_simulador() -> Credenciales:
