@@ -1,4 +1,4 @@
--- Usuario a3i_app que usa la aplicación, con los permisos justos
+-- Usuario a3i_app: heredado del Sprint 1; la app ya no lo usa, solo las pruebas. Se eliminará en el Sprint 3
 
 SET NAMES utf8mb4;
 USE a3i;
@@ -19,7 +19,6 @@ PREPARE stmt FROM @crear;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
-GRANT SELECT ON a3i.perfil TO 'a3i_app'@'localhost', 'a3i_app'@'127.0.0.1';
 GRANT SELECT, UPDATE (intentos_fallidos, estado, hash_contrasena) ON a3i.usuario
     TO 'a3i_app'@'localhost', 'a3i_app'@'127.0.0.1';
 

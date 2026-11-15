@@ -16,7 +16,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.view.panel_equipos import PanelEquipos
+from app.view.panel_planta import PanelPlanta
+from app.view.panel_seguridad import PanelSeguridad
+
 LOGO = Path(__file__).resolve().parent / "estilos" / "logo_icono.png"
+
+MENSAJE_SIN_CONEXION = "Sin conexión · Reintentando…"
 
 # Secciones del menú de cada perfil (sacadas de los mockups)
 MENUS = {
@@ -32,6 +38,13 @@ MENUS = {
         ("Equipos y cuentas", ["Dispositivos", "Configuración", "Cuentas"]),
         ("Gestión", ["Solicitudes y permisos", "Registro"]),
     ],
+}
+
+# Sección del menú donde va el panel de cada perfil
+PANELES = {
+    "Panel de planta": PanelPlanta,
+    "Cámaras": PanelSeguridad,
+    "Dispositivos": PanelEquipos,
 }
 
 # Texto que se muestra para cada valor de la BD
@@ -81,6 +94,8 @@ class VentanaPrincipal(QMainWindow):
 
         cuerpo = QHBoxLayout()
         cuerpo.setSpacing(0)
+        # El controlador le pasa las lecturas al panel del perfil
+        self.panel: PanelPlanta | PanelSeguridad | PanelEquipos | None = None
         self.paginas = QStackedWidget()
         cuerpo.addWidget(self._menu(secciones_menu(perfil, rango)))
         cuerpo.addWidget(self.paginas, 1)
@@ -103,6 +118,13 @@ class VentanaPrincipal(QMainWindow):
         layout.addWidget(titulo)
         layout.addStretch()
 
+        # Aviso de pérdida de conexión, oculto mientras llegan datos
+        self.aviso_conexion = QLabel(MENSAJE_SIN_CONEXION)
+        self.aviso_conexion.setProperty("estado", "alarma")
+        self.aviso_conexion.hide()
+        layout.addWidget(self.aviso_conexion)
+        layout.addSpacing(12)
+
         # Datos del usuario (los rellena RF-008)
         self.caja_usuario = QFrame()
         self.caja_usuario.setProperty("tipo", "caja_usuario")
@@ -122,6 +144,10 @@ class VentanaPrincipal(QMainWindow):
         self.boton_cerrar.clicked.connect(self.cerrar_sesion_pedido)
         layout.addWidget(self.boton_cerrar)
         return cabecera
+
+    def mostrar_sin_conexion(self, visible: bool) -> None:
+        """Muestra u oculta el aviso de «Sin conexión»."""
+        self.aviso_conexion.setVisible(visible)
 
     def mostrar_usuario(self, nombre: str, perfil: str, nivel: int, rango: str) -> None:
         """Rellena la cabecera con los datos del usuario."""
@@ -158,7 +184,11 @@ class VentanaPrincipal(QMainWindow):
         return menu
 
     def _pagina(self, titulo: str) -> QWidget:
-        # De momento cada sección es una página vacía
+        if titulo in PANELES:
+            self.panel = PANELES[titulo](titulo)
+            return self.panel
+
+        # El resto de secciones, de momento, son páginas vacías
         pagina = QWidget()
         layout = QVBoxLayout(pagina)
         layout.setContentsMargins(32, 28, 32, 28)

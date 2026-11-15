@@ -39,6 +39,9 @@ def autenticar(login: str, contrasena: str) -> Usuario | None:
     if _necesita_rehash(fila["hash_contrasena"]):
         repositorio.actualizar_hash(fila["id_usuario"], _generar_hash(contrasena))
 
+    # A partir de aquí los datos se piden con el usuario de BD del perfil
+    repositorio.conectar_perfil(fila["perfil"])
+
     return Usuario(
         id_usuario=fila["id_usuario"],
         nombre=fila["nombre"],
@@ -47,6 +50,11 @@ def autenticar(login: str, contrasena: str) -> Usuario | None:
         nivel=fila["nivel"],
         rango=fila["rango"],
     )
+
+
+def cerrar_sesion() -> None:
+    """Deja de usar el usuario de BD del perfil."""
+    repositorio.desconectar_perfil()
 
 
 def _verificar_contrasena(hash_guardado: str, contrasena: str) -> bool:

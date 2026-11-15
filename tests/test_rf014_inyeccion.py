@@ -25,7 +25,7 @@ def _hay_bd() -> bool:
     try:
         repositorio._conectar().close()
         return True
-    except pymysql.Error:
+    except (pymysql.Error, repositorio.ErrorBaseDatos):
         return False
 
 
