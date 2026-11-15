@@ -86,7 +86,7 @@ def _hay_bd() -> bool:
         for credenciales in _usuarios_bd().values():
             repositorio._conectar(*credenciales).close()
         return True
-    except pymysql.Error:
+    except (pymysql.Error, repositorio.ErrorBaseDatos):
         return False
 
 

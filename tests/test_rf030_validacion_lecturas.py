@@ -61,7 +61,7 @@ def _hay_simulador() -> bool:
     try:
         _conectar_simulador().close()
         return True
-    except pymysql.Error:
+    except (pymysql.Error, repositorio.ErrorBaseDatos):
         return False
 
 
