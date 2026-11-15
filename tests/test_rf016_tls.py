@@ -34,7 +34,7 @@ def _hay_bd() -> bool:
     try:
         repositorio._conectar(*repositorio._credenciales_login()).close()
         return True
-    except pymysql.Error:
+    except (pymysql.Error, repositorio.ErrorBaseDatos):
         return False
 
 
@@ -55,6 +55,11 @@ class PruebasConfiguracion(unittest.TestCase):
         self.assertEqual(opciones["ssl_ca"], config.DB_SSL_CA)
         self.assertTrue(opciones["ssl_verify_cert"])
         self.assertTrue(opciones["ssl_verify_identity"])
+
+    def test_sin_certificado_lanza_error_de_bd(self):
+        with mock.patch.object(config, "DB_SSL_CA", "/no/existe/ca.pem"):
+            with self.assertRaises(repositorio.ErrorBaseDatos):
+                repositorio.buscar_por_login("tech1")
 
     def test_ruta_de_la_ca_absoluta(self):
         self.assertTrue(Path(config.DB_SSL_CA).is_absolute())

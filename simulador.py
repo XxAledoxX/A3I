@@ -73,8 +73,8 @@ def main() -> int:
                 return 0
             time.sleep(config.SEGUNDOS_SIMULADOR)
     except ErrorBaseDatos:
-        print("No se puede conectar con la BD: revisa el .env (DB_SIMULADOR_PASSWORD).",
-              file=sys.stderr)
+        print("No se puede conectar con la BD: revisa el .env (DB_SIMULADOR_PASSWORD "
+              "y DB_SSL_CA) y que MariaDB esté en marcha.", file=sys.stderr)
         return 1
     except KeyboardInterrupt:
         print("\nSimulador parado.")

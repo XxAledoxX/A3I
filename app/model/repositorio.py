@@ -38,22 +38,26 @@ def _conectar(usuario: str | None = None,
     """Abre una conexión. Sin usuario, usa el de DB_USER del .env."""
     if usuario is None:
         usuario, contrasena = config.DB_USER, config.DB_PASSWORD
-    return pymysql.connect(
-        host=config.DB_HOST,
-        port=config.DB_PORT,
-        user=usuario,
-        password=contrasena,
-        database=config.DB_NAME,
-        charset="utf8mb4",
-        cursorclass=DictCursor,
-        autocommit=True,
-        connect_timeout=5,
-        # Siempre cifrado: se comprueba que el certificado del servidor lo firma
-        # nuestra CA y que es para el host al que nos conectamos
-        ssl_ca=config.DB_SSL_CA,
-        ssl_verify_cert=True,
-        ssl_verify_identity=True,
-    )
+    try:
+        return pymysql.connect(
+            host=config.DB_HOST,
+            port=config.DB_PORT,
+            user=usuario,
+            password=contrasena,
+            database=config.DB_NAME,
+            charset="utf8mb4",
+            cursorclass=DictCursor,
+            autocommit=True,
+            connect_timeout=5,
+            # Siempre cifrado: se comprueba que el certificado del servidor lo firma
+            # nuestra CA y que es para el host al que nos conectamos
+            ssl_ca=config.DB_SSL_CA,
+            ssl_verify_cert=True,
+            ssl_verify_identity=True,
+        )
+    except OSError as error:
+        # Sin el archivo de la CA (o con uno roto) no se puede conectar
+        raise ErrorBaseDatos("Error al conectar con la base de datos") from error
 
 
 def _comprobar_parametros(parametros: tuple) -> None:
