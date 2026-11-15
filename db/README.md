@@ -7,7 +7,7 @@ Para crear o resetear la BD:
    Para generarlas todas de una vez:
 
    ```
-   for v in DB_PASSWORD DB_PASSWORD_LOGIN DB_PASSWORD_CIENTIFICOS DB_PASSWORD_SEGURIDAD DB_PASSWORD_TECH; do
+   for v in DB_PASSWORD DB_PASSWORD_LOGIN DB_PASSWORD_CIENTIFICOS DB_PASSWORD_SEGURIDAD DB_PASSWORD_TECH DB_SIMULADOR_PASSWORD; do
        sed -i.bak "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env
    done
    rm .env.bak
@@ -26,8 +26,21 @@ La aplicación no lee las tablas: solo ejecuta procedimientos (`db/007_control_a
 |---|---|---|
 | `a3i_login` | Iniciar sesión | `buscar_usuario`, `registrar_fallo`, `actualizar_intentos`, `actualizar_hash` |
 | `a3i_cientificos`, `a3i_seguridad`, `a3i_tech` | Datos tras el login, según el perfil | `ultimas_lecturas`, `estado_actuadores`, `estado_equipos` |
+| `a3i_simulador` | El simulador de lecturas (`db/006_lecturas_historico.sql`) | Nada: solo `SELECT` en `variable` e `INSERT` en `lectura` |
 
 Los procedimientos de datos solo devuelven algo si el usuario de BD que llama es el del perfil del usuario: desde DBeaver con root salen vacíos.
+
+## Lecturas
+
+El reset mete 30 días de histórico (`db/006_lecturas_historico.sql`): una lectura cada 15 min de cada variable, hasta la hora del reset. Hay dos fuegos (hace 12 y 4 días) y algunos valores fuera del rango normal.
+
+Para que lleguen lecturas nuevas mientras la app está abierta, en otra terminal:
+
+```
+python simulador.py                   # una lectura de cada variable cada 5 s, hasta Ctrl+C
+python simulador.py --fuera-de-rango  # cada vez, una variable fuera de su rango normal
+python simulador.py --fuego           # el detector de llama marca fuego
+```
 
 ## Usuarios de prueba
 

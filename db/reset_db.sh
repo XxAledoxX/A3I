@@ -27,6 +27,7 @@ password_login="$(leer_password DB_PASSWORD_LOGIN)"
 password_cientificos="$(leer_password DB_PASSWORD_CIENTIFICOS)"
 password_seguridad="$(leer_password DB_PASSWORD_SEGURIDAD)"
 password_tech="$(leer_password DB_PASSWORD_TECH)"
+password_simulador="$(leer_password DB_SIMULADOR_PASSWORD)"
 
 scripts=("$raiz"/db/[0-9][0-9][0-9]_*.sql)
 
@@ -37,6 +38,7 @@ scripts=("$raiz"/db/[0-9][0-9][0-9]_*.sql)
     printf "SET @a3i_cientificos_password = '%s';\n" "$password_cientificos"
     printf "SET @a3i_seguridad_password = '%s';\n" "$password_seguridad"
     printf "SET @a3i_tech_password = '%s';\n" "$password_tech"
+    printf "SET @a3i_simulador_password = '%s';\n" "$password_simulador"
     # Primero a3i_lecturas: su FK a a3i.variable impide borrar a3i
     echo "DROP DATABASE IF EXISTS a3i_lecturas;"
     cat "${scripts[@]}"

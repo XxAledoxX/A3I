@@ -141,3 +141,27 @@ def actualizar_hash(id_usuario: int, nuevo_hash: str) -> None:
     _ejecutar(
         "CALL actualizar_hash(%s, %s)", (id_usuario, nuevo_hash), _credenciales_login()
     )
+
+
+# Simulador de lecturas (RF-029), con a3i_simulador
+
+def _credenciales_simulador() -> Credenciales:
+    return config.DB_USUARIO_SIMULADOR, config.DB_PASSWORD_SIMULADOR
+
+
+def variables_simulador() -> list[dict]:
+    """Variables con su rango normal, para inventar las lecturas."""
+    return _consultar_todos(
+        "SELECT id_variable, nombre, minimo_normal, maximo_normal FROM variable",
+        (),
+        _credenciales_simulador(),
+    )
+
+
+def insertar_lectura(id_variable: int, valor: float) -> None:
+    """La fecha y hora la pone MariaDB."""
+    _ejecutar(
+        "INSERT INTO a3i_lecturas.lectura (id_variable, valor) VALUES (%s, %s)",
+        (id_variable, valor),
+        _credenciales_simulador(),
+    )
