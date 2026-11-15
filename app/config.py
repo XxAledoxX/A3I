@@ -29,6 +29,10 @@ USUARIOS_PERFIL = {
     "tech": ("a3i_tech", os.getenv("DB_PASSWORD_TECH", "")),
 }
 
+# Usuario de BD del simulador de lecturas (RF-029)
+DB_USUARIO_SIMULADOR = "a3i_simulador"
+DB_PASSWORD_SIMULADOR = os.getenv("DB_SIMULADOR_PASSWORD", "")
+
 # Intentos fallidos antes de bloquear la cuenta
 MAX_INTENTOS_FALLIDOS = 5
 
@@ -43,3 +47,6 @@ MINUTOS_INACTIVIDAD = 10
 
 # Cada cuántos segundos se vuelven a pedir los datos del panel
 SEGUNDOS_REFRESCO = 5
+
+# Cada cuántos segundos mete el simulador una lectura de cada variable
+SEGUNDOS_SIMULADOR = 5
