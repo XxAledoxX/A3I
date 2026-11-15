@@ -13,13 +13,39 @@ Equipo: Alejandro Dotor, Arturo Fernández y Aarón Peñafiel.
 
 Cada rama de tarea lleva su archivo en `tareas/` con el nombre del alumno y la tarea (`tareas/ALEJANDRO_RF-022.txt`).
 
-## Instalación
+## Primera instalación
 
-```
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-```
-
-En Windows el entorno se activa con `.venv\Scripts\activate`.
+1. **Requisitos:** Python 3.14, MariaDB, `openssl` y `bash`.
+2. **Entorno de Python**, desde la raíz del proyecto:
+   ```
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+   En Windows: `.venv\Scripts\activate` en vez de `source .venv/bin/activate`.
+3. **`.env`:** copia la plantilla y genera las 6 contraseñas con el bucle de [db/README.md](db/README.md).
+   ```
+   cp .env.example .env
+   ```
+4. **Certificados y TLS:** genera los certificados y configura MariaDB con ellos, como explica el apartado [TLS de db/README.md](db/README.md#tls). Se hace una vez en cada equipo.
+   ```
+   ./db/generar_certificados.sh
+   ```
+5. **Base de datos:**
+   ```
+   ./db/reset_db.sh
+   ```
+   En Arch, con `sudo ./db/reset_db.sh`, porque root entra por `unix_socket`: cuando pida la contraseña, pulsa Enter.
+6. **Pruebas:**
+   ```
+   ./tests/ejecutar_tests.sh
+   ```
+7. **Arrancar la app:**
+   ```
+   python main.py
+   ```
+   Los usuarios de prueba y sus contraseñas están en [db/README.md](db/README.md#usuarios-de-prueba).
+8. **Lecturas en directo:** en otra terminal, con el entorno activado:
+   ```
+   python simulador.py
+   ```

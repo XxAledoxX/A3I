@@ -1,4 +1,4 @@
--- Usuario a3i_app que usa la aplicación, con los permisos justos
+-- Usuario a3i_app: heredado del Sprint 1; la app ya no lo usa, solo las pruebas. Se eliminará en el Sprint 3
 
 SET NAMES utf8mb4;
 USE a3i;
