@@ -50,3 +50,6 @@ SEGUNDOS_REFRESCO = 5
 
 # Cada cuántos segundos mete el simulador una lectura de cada variable
 SEGUNDOS_SIMULADOR = 5
+
+# Máximo de puntos que devuelve el histórico de una variable
+PUNTOS_HISTORICO = 300
