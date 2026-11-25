@@ -2,7 +2,7 @@
 
 Llama a los procedimientos de db/007_control_acceso.sql con cada usuario de
 prueba de db/README.md y comprueba lo que dice la tabla de ejemplos de
-Assets/Models/Reglas-acceso.pdf. También comprueba que los usuarios de BD
+Assets/Models/vigente/Reglas-acceso.pdf. También comprueba que los usuarios de BD
 de la app no pueden leer ni cambiar tablas. Se saltan si MariaDB no está
 disponible; las de lecturas, además, si todavía no hay lecturas (RF-029).
 
