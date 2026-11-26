@@ -126,6 +126,15 @@ class PruebasRefresco(unittest.TestCase):
         self.assertIsNone(self.controlador.controlador_panel)
         self.assertFalse(hilo.isRunning())
 
+    def test_salir_para_el_refresco(self):
+        # Lo que pasa al cerrar con la X: main.py llama a salir() con aboutToQuit
+        hilo = self.controlador.controlador_panel.hilo
+        self.controlador.salir()
+        self.assertIsNone(self.controlador.controlador_panel)
+        self.assertFalse(hilo.isRunning())
+        self.controlador.ventana_principal.close()
+        self.controlador.ventana_principal = None
+
 
 if __name__ == "__main__":
     unittest.main()

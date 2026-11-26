@@ -100,8 +100,8 @@ class ControladorLogin:
         )
         self.controlador_panel.iniciar()
 
-    def cerrar_sesion(self) -> None:
-        """Cierra la ventana principal y vuelve al login."""
+    def _terminar_sesion(self) -> None:
+        """Para el temporizador y el hilo del refresco y cierra la sesión."""
         self.temporizador.stop()
         QApplication.instance().removeEventFilter(self.detector)
         if self.controlador_panel is not None:
@@ -110,11 +110,18 @@ class ControladorLogin:
         self.controlador_historico = None
         autenticacion.cerrar_sesion()
 
+    def cerrar_sesion(self) -> None:
+        """Cierra la ventana principal y vuelve al login."""
+        self._terminar_sesion()
         self.ventana_login.limpiar()
         self.ventana_login.show()
         self.ventana_principal.close()
         self.ventana_principal.deleteLater()
         self.ventana_principal = None
+
+    def salir(self) -> None:
+        """Al cerrar la app (también con la X): si el hilo sigue vivo, Qt aborta."""
+        self._terminar_sesion()
 
     def sesion_caducada(self) -> None:
         self.cerrar_sesion()

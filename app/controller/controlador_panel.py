@@ -1,12 +1,12 @@
 """Controlador del panel: pide los datos cada pocos segundos sin congelar la ventana."""
 
+import traceback
 from collections.abc import Callable
 from datetime import datetime
 
 from PySide6.QtCore import QObject, QThread, QTimer, Signal, Slot
 
 from app import config
-from app.model.repositorio import ErrorBaseDatos
 
 # Función que devuelve (lecturas, actuadores, equipos). La de verdad llega con RF-031
 ObtenerDatos = Callable[[], tuple[list[dict], list[dict], list[dict]]]
@@ -26,7 +26,10 @@ class Trabajador(QObject):
     def cargar(self) -> None:
         try:
             lecturas, actuadores, equipos = self.obtener_datos()
-        except ErrorBaseDatos:
+        except Exception:
+            # Cualquier error, no solo de BD: si no se avisa, ocupado se queda
+            # en True y el panel deja de refrescarse sin decir nada
+            traceback.print_exc()
             self.fallo.emit()
             return
         self.datos_listos.emit(lecturas, actuadores, equipos)
