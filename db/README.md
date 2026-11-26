@@ -7,7 +7,7 @@ Para crear o resetear la BD:
    Para generarlas todas de una vez:
 
    ```
-   for v in DB_PASSWORD DB_PASSWORD_LOGIN DB_PASSWORD_CIENTIFICOS DB_PASSWORD_SEGURIDAD DB_PASSWORD_TECH DB_SIMULADOR_PASSWORD; do
+   for v in DB_PASSWORD_LOGIN DB_PASSWORD_CIENTIFICOS DB_PASSWORD_SEGURIDAD DB_PASSWORD_TECH DB_SIMULADOR_PASSWORD; do
        sed -i.bak "s/^$v=.*/$v=$(openssl rand -hex 24)/" .env
    done
    rm .env.bak
@@ -29,7 +29,6 @@ La aplicación no lee las tablas: solo ejecuta procedimientos (`db/007_control_a
 | `a3i_login` | Iniciar sesión | `buscar_usuario`, `registrar_fallo`, `actualizar_intentos`, `actualizar_hash` |
 | `a3i_cientificos`, `a3i_seguridad`, `a3i_tech` | Datos tras el login, según el perfil | `ultimas_lecturas`, `estado_actuadores`, `estado_equipos` |
 | `a3i_simulador` | El simulador de lecturas (`db/006_lecturas_historico.sql`) | Nada: solo `SELECT` en `variable` e `INSERT` en `lectura` |
-| `a3i_app` | Heredado del Sprint 1. La app ya no lo usa; solo las pruebas. Se eliminará en el Sprint 3. | Nada: `SELECT` y `UPDATE` de `intentos_fallidos`, `estado` y `hash_contrasena` en `usuario` |
 
 Los procedimientos de datos solo devuelven algo si el usuario de BD que llama es el del perfil del usuario: desde DBeaver con root salen vacíos.
 
@@ -62,6 +61,8 @@ python simulador.py --fuego           # el detector de llama marca fuego
 | `tech2` | `Tech2.Prueba` | Tech | Empleado | 1 | critico |
 | `subjefe_tech` | `Subjefe_tech.Prueba` | Tech | Subjefe de perfil | 2 | cientifico |
 | `jefe_tech` | `Jefe_tech.Prueba` | Tech | Jefe de perfil | 3 | critico |
+| `tech_bloqueado` | `Tech_bloqueado.Prueba` | Tech | Empleado (bloqueada) | 1 | general |
+| `tech_desactivado` | `Tech_desactivado.Prueba` | Tech | Empleado (desactivada) | 1 | general |
 
 ## Hash de un usuario nuevo
 

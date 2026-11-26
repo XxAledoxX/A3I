@@ -1,9 +1,9 @@
 """RF-010: pruebas del bloqueo de cuenta (RF-006) y de la sesión (RF-009).
 
 Las del bloqueo usan la BD de prueba (./db/reset_db.sh) y se saltan si
-MariaDB no está disponible. Al terminar cada prueba se dejan los intentos
-y el estado de todas las cuentas como estaban. Las de la sesión no usan BD
-y van con Qt sin pantalla (QT_QPA_PLATFORM=offscreen).
+MariaDB no está disponible. Cada prueba va en una transacción que se deshace
+al acabar (tests/bd.py). Las de la sesión no usan BD y van con Qt sin
+pantalla (QT_QPA_PLATFORM=offscreen).
 
     python -m unittest -v tests.test_rf010_bloqueo_sesion
 """
@@ -14,7 +14,6 @@ from unittest import mock
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-import pymysql
 from PySide6.QtCore import QEvent, Qt
 from PySide6.QtGui import QKeyEvent
 from PySide6.QtWidgets import QApplication
@@ -24,6 +23,7 @@ from app.controller import controlador_login
 from app.controller.controlador_login import ControladorLogin
 from app.model import autenticacion, repositorio
 from app.model.usuario import Usuario
+from tests.bd import CUENTA_DESACTIVADA, PruebaConTransaccion, estado_cuentas, hay_bd
 
 # Cuenta que se bloquea en las pruebas y otra para comprobar que no cambia
 LOGIN = "tech2"
@@ -39,59 +39,29 @@ USUARIO_EJEMPLO = Usuario(
 )
 
 
-def _hay_bd() -> bool:
-    try:
-        repositorio._conectar().close()
-        return True
-    except (pymysql.Error, repositorio.ErrorBaseDatos):
-        return False
-
-
-def _estado_cuentas() -> dict[str, tuple]:
-    """Intentos fallidos y estado de todas las cuentas."""
-    with repositorio._conectar() as conexion, conexion.cursor() as cursor:
-        cursor.execute("SELECT login, intentos_fallidos, estado FROM usuario")
-        return {
-            fila["login"]: (fila["intentos_fallidos"], fila["estado"])
-            for fila in cursor.fetchall()
-        }
-
-
-def _poner_cuenta(login: str, intentos: int, estado: str) -> None:
-    with repositorio._conectar() as conexion, conexion.cursor() as cursor:
-        cursor.execute(
-            "UPDATE usuario SET intentos_fallidos = %s, estado = %s WHERE login = %s",
-            (intentos, estado, login),
-        )
-
-
 def _fallar(login: str, veces: int) -> None:
     for _ in range(veces):
         autenticacion.autenticar(login, "incorrecta")
 
 
-@unittest.skipUnless(_hay_bd(), "MariaDB no disponible")
-class PruebasBloqueo(unittest.TestCase):
+@unittest.skipUnless(hay_bd(), "MariaDB no disponible")
+class PruebasBloqueo(PruebaConTransaccion):
 
     def setUp(self):
-        self.cuentas_antes = _estado_cuentas()
+        super().setUp()
+        self.cuentas_antes = estado_cuentas()
         for login, (intentos, estado) in self.cuentas_antes.items():
             if estado != "activo" or intentos:
                 self.skipTest(f"{login} no está como recién creada: ejecuta ./db/reset_db.sh")
 
-    def tearDown(self):
-        # Deja las cuentas como estaban aunque la prueba falle
-        for login, (intentos, estado) in self.cuentas_antes.items():
-            _poner_cuenta(login, intentos, estado)
-
     def test_por_debajo_del_maximo_no_bloquea(self):
         _fallar(LOGIN, MAXIMO - 1)
-        self.assertEqual(_estado_cuentas()[LOGIN], (MAXIMO - 1, "activo"))
+        self.assertEqual(estado_cuentas()[LOGIN], (MAXIMO - 1, "activo"))
         self.assertIsNotNone(autenticacion.autenticar(LOGIN, CONTRASENA))
 
     def test_al_llegar_al_maximo_bloquea(self):
         _fallar(LOGIN, MAXIMO)
-        self.assertEqual(_estado_cuentas()[LOGIN], (MAXIMO, "bloqueado"))
+        self.assertEqual(estado_cuentas()[LOGIN], (MAXIMO, "bloqueado"))
 
     def test_cuenta_bloqueada_no_entra_con_la_contrasena_correcta(self):
         _fallar(LOGIN, MAXIMO)
@@ -99,32 +69,33 @@ class PruebasBloqueo(unittest.TestCase):
 
     def test_fallos_con_la_cuenta_bloqueada_no_suben_el_contador(self):
         _fallar(LOGIN, MAXIMO + 3)
-        self.assertEqual(_estado_cuentas()[LOGIN], (MAXIMO, "bloqueado"))
+        self.assertEqual(estado_cuentas()[LOGIN], (MAXIMO, "bloqueado"))
 
     def test_login_correcto_pone_el_contador_a_cero(self):
         _fallar(LOGIN, MAXIMO - 1)
         self.assertIsNotNone(autenticacion.autenticar(LOGIN, CONTRASENA))
-        self.assertEqual(_estado_cuentas()[LOGIN], (0, "activo"))
+        self.assertEqual(estado_cuentas()[LOGIN], (0, "activo"))
         # Vuelven a hacer falta todos los fallos para bloquear
         _fallar(LOGIN, MAXIMO - 1)
-        self.assertEqual(_estado_cuentas()[LOGIN], (MAXIMO - 1, "activo"))
+        self.assertEqual(estado_cuentas()[LOGIN], (MAXIMO - 1, "activo"))
 
     def test_bloquear_una_cuenta_no_cambia_las_demas(self):
         _fallar(LOGIN, MAXIMO)
         esperado = dict(self.cuentas_antes)
         esperado[LOGIN] = (MAXIMO, "bloqueado")
-        self.assertEqual(_estado_cuentas(), esperado)
+        self.assertEqual(estado_cuentas(), esperado)
         self.assertIsNotNone(autenticacion.autenticar(OTRO_LOGIN, OTRA_CONTRASENA))
 
     def test_cuenta_desactivada_no_entra(self):
-        _poner_cuenta(LOGIN, 0, "desactivado")
-        self.assertIsNone(autenticacion.autenticar(LOGIN, CONTRASENA))
-        _fallar(LOGIN, MAXIMO)
-        self.assertEqual(_estado_cuentas()[LOGIN], (0, "desactivado"))
+        login, contrasena = CUENTA_DESACTIVADA
+        self.assertIsNone(autenticacion.autenticar(login, contrasena))
+        _fallar(login, MAXIMO)
+        fila = repositorio.buscar_por_login(login)
+        self.assertEqual((fila["intentos_fallidos"], fila["estado"]), (0, "desactivado"))
 
     def test_login_inexistente_no_bloquea_nada(self):
         _fallar("noexiste", MAXIMO + 1)
-        self.assertEqual(_estado_cuentas(), self.cuentas_antes)
+        self.assertEqual(estado_cuentas(), self.cuentas_antes)
 
     def test_cuenta_bloqueada_ve_el_mismo_mensaje(self):
         app = QApplication.instance() or QApplication([])

@@ -1,17 +1,17 @@
 """RF-005: las contraseñas se guardan con hash Argon2id y sal.
 
 Las pruebas con BD usan la de prueba (./db/reset_db.sh) y se saltan si
-MariaDB no está disponible. Las que cambian un hash lo dejan como estaba.
+MariaDB no está disponible. Van en una transacción que se deshace al acabar.
 
     python -m unittest -v tests.test_rf005_hash
 """
 
 import unittest
 
-import pymysql
 from argon2 import PasswordHasher, extract_parameters
 
 from app.model import autenticacion, repositorio
+from tests.bd import LOGINS_PRUEBA, PruebaConTransaccion, hay_bd
 
 # Usuarios de prueba de db/003_datos_prueba.sql (ver db/README.md)
 USUARIOS_PRUEBA = {
@@ -31,18 +31,11 @@ def _sal(hash_argon: str) -> str:
     return hash_argon.split("$")[4]
 
 
-def _hay_bd() -> bool:
-    try:
-        repositorio._conectar().close()
-        return True
-    except (pymysql.Error, repositorio.ErrorBaseDatos):
-        return False
-
-
 def _hashes_guardados() -> dict[str, str]:
-    with repositorio._conectar() as conexion, conexion.cursor() as cursor:
-        cursor.execute("SELECT login, hash_contrasena FROM usuario")
-        return {fila["login"]: fila["hash_contrasena"] for fila in cursor.fetchall()}
+    return {
+        login: repositorio.buscar_por_login(login)["hash_contrasena"]
+        for login in LOGINS_PRUEBA
+    }
 
 
 class PruebasHash(unittest.TestCase):
@@ -114,18 +107,12 @@ class PruebasHash(unittest.TestCase):
                 )
 
 
-@unittest.skipUnless(_hay_bd(), "MariaDB no disponible")
-class PruebasHashEnBD(unittest.TestCase):
+@unittest.skipUnless(hay_bd(), "MariaDB no disponible")
+class PruebasHashEnBD(PruebaConTransaccion):
 
     def setUp(self):
+        super().setUp()
         self.hashes_antes = _hashes_guardados()
-
-    def tearDown(self):
-        # Deja los hashes como estaban aunque la prueba falle
-        for login, hash_antes in self.hashes_antes.items():
-            fila = repositorio.buscar_por_login(login)
-            if fila["hash_contrasena"] != hash_antes:
-                repositorio.actualizar_hash(fila["id_usuario"], hash_antes)
 
     def test_hashes_guardados_son_argon2id(self):
         for login, hash_guardado in self.hashes_antes.items():

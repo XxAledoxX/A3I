@@ -1,16 +1,15 @@
 """RF-014: las consultas parametrizadas no dejan hacer inyección SQL.
 
 Las pruebas con BD usan la de prueba (./db/reset_db.sh) y se saltan si
-MariaDB no está disponible.
+MariaDB no está disponible. Van en una transacción que se deshace al acabar.
 
     python -m unittest -v
 """
 
 import unittest
 
-import pymysql
-
 from app.model import repositorio
+from tests.bd import PruebaConTransaccion, estado_cuentas, hay_bd
 
 # Entradas típicas de inyección SQL
 INYECCIONES = (
@@ -21,37 +20,20 @@ INYECCIONES = (
 )
 
 
-def _hay_bd() -> bool:
-    try:
-        repositorio._conectar().close()
-        return True
-    except (pymysql.Error, repositorio.ErrorBaseDatos):
-        return False
-
-
-def _estado_cuentas() -> list[dict]:
-    """Intentos fallidos y estado de todas las cuentas."""
-    with repositorio._conectar() as conexion, conexion.cursor() as cursor:
-        cursor.execute(
-            "SELECT login, intentos_fallidos, estado FROM usuario ORDER BY login"
-        )
-        return cursor.fetchall()
-
-
 class PruebasParametros(unittest.TestCase):
     """No necesitan BD: el error salta antes de conectar."""
 
     def test_consultar_sin_tupla_da_error(self):
         with self.assertRaises(TypeError):
-            repositorio._consultar_uno("SELECT %s", "tech1")
+            repositorio._consultar_uno("SELECT %s", "tech1", repositorio._credenciales_login())
 
     def test_ejecutar_sin_tupla_da_error(self):
         with self.assertRaises(TypeError):
-            repositorio._ejecutar("SELECT %s", ["tech1"])
+            repositorio._ejecutar("SELECT %s", ["tech1"], repositorio._credenciales_login())
 
 
-@unittest.skipUnless(_hay_bd(), "MariaDB no disponible")
-class PruebasInyeccion(unittest.TestCase):
+@unittest.skipUnless(hay_bd(), "MariaDB no disponible")
+class PruebasInyeccion(PruebaConTransaccion):
 
     def test_login_normal_funciona(self):
         # Control: si esto falla, las demás pruebas no demuestran nada
@@ -65,17 +47,17 @@ class PruebasInyeccion(unittest.TestCase):
                 self.assertIsNone(repositorio.buscar_por_login(entrada))
 
     def test_inyeccion_en_busqueda_no_cambia_cuentas(self):
-        antes = _estado_cuentas()
+        antes = estado_cuentas()
         for entrada in INYECCIONES:
             repositorio.buscar_por_login(entrada)
-        self.assertEqual(_estado_cuentas(), antes)
+        self.assertEqual(estado_cuentas(), antes)
 
     def test_inyeccion_en_registrar_fallo_no_cambia_cuentas(self):
         # Con el SQL concatenado sumaría un fallo a todas las cuentas activas
-        antes = _estado_cuentas()
+        antes = estado_cuentas()
         for entrada in INYECCIONES:
             repositorio.registrar_fallo(entrada, 5)
-        self.assertEqual(_estado_cuentas(), antes)
+        self.assertEqual(estado_cuentas(), antes)
 
     def test_comilla_en_login_no_da_error(self):
         # Se escapa, no se rompe la consulta
