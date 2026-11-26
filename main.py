@@ -12,6 +12,7 @@ def main() -> None:
     app = QApplication(sys.argv)
     aplicar_estilos(app)
     controlador = ControladorLogin()
+    app.aboutToQuit.connect(controlador.salir)
     controlador.mostrar()
     sys.exit(app.exec())
 

@@ -154,6 +154,25 @@ class PruebasRefresco(unittest.TestCase):
         esperar(0.2)
         self.assertTrue(panel.lecturas)
 
+    def test_sigue_tras_un_error_que_no_es_de_bd(self):
+        respuestas = [KeyError("valor")]
+
+        def falla_una_vez():
+            if respuestas:
+                raise respuestas.pop()
+            return LECTURAS, ACTUADORES, EQUIPOS
+
+        panel = PanelFalso()
+        controlador = self.crear(panel, falla_una_vez)
+        errores = []
+        controlador.error_conexion.connect(lambda: errores.append(1))
+        # El traceback del error se imprime a propósito; aquí no hace falta verlo
+        with mock.patch("traceback.print_exc"):
+            controlador.iniciar()
+            esperar(0.2)
+        self.assertEqual(len(errores), 1)
+        self.assertTrue(panel.lecturas)
+
     def test_parar(self):
         panel = PanelFalso()
         controlador = self.crear(panel)
