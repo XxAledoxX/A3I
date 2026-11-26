@@ -62,7 +62,7 @@ BEGIN
     UPDATE usuario SET hash_contrasena = p_hash WHERE id_usuario = p_id_usuario;
 END //
 
--- Procedimientos de datos (regla de RF-025, Assets/Models/Reglas-acceso.pdf).
+-- Procedimientos de datos (regla de RF-025, Assets/Models/vigente/Reglas-acceso.pdf).
 -- Solo devuelven algo si el usuario está activo y el usuario de BD que llama
 -- es el de su perfil: un científico no puede pedir datos con a3i_tech.
 -- Desde DBeaver con root salen vacíos por eso

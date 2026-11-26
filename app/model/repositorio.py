@@ -14,8 +14,10 @@ en una tupla, y PyMySQL los escapa.
   cambiar, se eligen de una lista fija escrita en el código.
 - La app solo ejecuta procedimientos (CALL), con el usuario de BD del login
   o el del perfil (RF-013). Un procedimiento nuevo necesita su GRANT EXECUTE
-  en db/007_control_acceso.sql.
+  en su script de db/ (como los de 007_control_acceso.sql).
 """
+
+from datetime import datetime
 
 import pymysql
 from pymysql.cursors import DictCursor
@@ -169,6 +171,17 @@ def datos_panel(id_usuario: int) -> tuple[list[dict], list[dict], list[dict]]:
         ultimas_lecturas(id_usuario),
         estado_actuadores(id_usuario),
         estado_equipos(id_usuario),
+    )
+
+
+def historico_lecturas(id_usuario: int, variable: str, desde: datetime,
+                       hasta: datetime,
+                       puntos: int = config.PUNTOS_HISTORICO) -> list[dict]:
+    """Lecturas de una variable entre dos fechas, agrupadas en tramos."""
+    return _consultar_todos(
+        "CALL historico_lecturas(%s, %s, %s, %s, %s)",
+        (id_usuario, variable, desde, hasta, puntos),
+        _credenciales_perfil(),
     )
 
 
