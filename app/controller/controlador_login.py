@@ -6,6 +6,7 @@ from PySide6.QtCore import QEvent, QObject, QTimer
 from PySide6.QtWidgets import QApplication
 
 from app import config
+from app.controller.controlador_historico import ControladorHistorico
 from app.controller.controlador_panel import ControladorPanel
 from app.model import autenticacion, repositorio
 from app.model.repositorio import ErrorBaseDatos
@@ -40,6 +41,7 @@ class ControladorLogin:
         self.ventana_login = VentanaLogin()
         self.ventana_principal: VentanaPrincipal | None = None
         self.controlador_panel: ControladorPanel | None = None
+        self.controlador_historico: ControladorHistorico | None = None
         self.ventana_login.login_pedido.connect(self.iniciar_sesion)
 
         self.temporizador = QTimer()
@@ -77,6 +79,10 @@ class ControladorLogin:
         self.temporizador.start()
         QApplication.instance().installEventFilter(self.detector)
         self.iniciar_refresco(usuario)
+        if self.ventana_principal.historico is not None:
+            self.controlador_historico = ControladorHistorico(
+                self.ventana_principal.historico, usuario.id_usuario
+            )
 
     def iniciar_refresco(self, usuario: Usuario) -> None:
         """Pide los datos del panel cada pocos segundos (RF-017) con su usuario."""
@@ -101,6 +107,7 @@ class ControladorLogin:
         if self.controlador_panel is not None:
             self.controlador_panel.parar()
             self.controlador_panel = None
+        self.controlador_historico = None
         autenticacion.cerrar_sesion()
 
         self.ventana_login.limpiar()
