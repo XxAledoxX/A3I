@@ -185,6 +185,23 @@ def historico_lecturas(id_usuario: int, variable: str, desde: datetime,
     )
 
 
+# Avisos (RF-006), con el usuario de BD del perfil
+
+def mis_notificaciones(id_usuario: int) -> list[dict]:
+    """Avisos sin leer del usuario, el más reciente primero."""
+    return _consultar_todos(
+        "CALL mis_notificaciones(%s)", (id_usuario,), _credenciales_perfil()
+    )
+
+
+def marcar_notificacion_leida(id_usuario: int, id_notificacion: int) -> None:
+    _ejecutar(
+        "CALL marcar_notificacion_leida(%s, %s)",
+        (id_usuario, id_notificacion),
+        _credenciales_perfil(),
+    )
+
+
 # Simulador de lecturas (RF-029), con a3i_simulador
 
 def _credenciales_simulador() -> Credenciales:

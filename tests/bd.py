@@ -63,6 +63,10 @@ class PruebaConTransaccion(unittest.TestCase):
             if usuario not in self.conexiones:
                 conexion = conectar(usuario, contrasena)
                 conexion.autocommit(False)
+                # Así cada conexión ve lo que las demás aún no han confirmado:
+                # el bloqueo lo hace a3i_login y el aviso lo lee el perfil
+                with conexion.cursor() as cursor:
+                    cursor.execute("SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED")
                 self.conexiones[usuario] = conexion
             return _SinCerrar(self.conexiones[usuario])
 
