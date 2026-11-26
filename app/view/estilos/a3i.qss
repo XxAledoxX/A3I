@@ -106,7 +106,7 @@ QScrollArea[tipo="panel"] > QWidget > QWidget {
 
 /* Campos de formulario */
 
-QLineEdit, QComboBox {
+QLineEdit, QComboBox, QDateTimeEdit {
     background-color: @blanco;
     border: 1px solid @borde;
     border-radius: 6px;
@@ -115,8 +115,37 @@ QLineEdit, QComboBox {
     selection-color: @azul_marino;
 }
 
-QLineEdit:focus, QComboBox:focus {
+QLineEdit:focus, QComboBox:focus, QDateTimeEdit:focus {
     border: 1px solid @turquesa;
+}
+
+/* Gráficas y tablas */
+
+QChartView {
+    background-color: @blanco;
+    border: 1px solid @borde;
+    border-radius: 8px;
+}
+
+
+QTableWidget {
+    background-color: @blanco;
+    border: 1px solid @borde;
+    border-radius: 8px;
+    gridline-color: @neutro_suave;
+    selection-background-color: @neutro_suave;
+    selection-color: @grafito;
+}
+
+QHeaderView::section {
+    background-color: @fondo;
+    color: @pizarra;
+    font-family: "Inter";
+    font-weight: 600;
+    font-size: 12px;
+    border: none;
+    border-bottom: 1px solid @borde;
+    padding: 6px 8px;
 }
 
 /* Botones */
