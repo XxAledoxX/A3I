@@ -1,6 +1,7 @@
 """RF-033: histórico de una variable entre dos fechas.
 
 Usa la BD con el histórico de db/006 (se salta sin .env o sin lecturas).
+Las fechas cubren 60 días porque el histórico acaba en el último reset.
 
     python -m unittest -v tests.test_rf033_historico
 """
@@ -36,7 +37,7 @@ class PruebasHistorico(unittest.TestCase):
     def setUp(self):
         self.usuario = autenticacion.autenticar("cientifico1", "Cientifico1.Prueba")
         self.hasta = datetime.now()
-        self.desde = self.hasta - timedelta(days=30)
+        self.desde = self.hasta - timedelta(days=60)
 
     def tearDown(self):
         autenticacion.cerrar_sesion()
@@ -56,7 +57,7 @@ class PruebasHistorico(unittest.TestCase):
     def test_no_pasa_del_maximo_de_puntos(self):
         filas = self._historico("caudal", puntos=100)
         self.assertLessEqual(len(filas), 100)
-        # 30 días con una lectura cada 15 min, más las del simulador
+        # Los 30 días del histórico, una lectura cada 15 min, más las del simulador
         self.assertGreaterEqual(sum(f["lecturas"] for f in filas), 2879)
 
     def test_ordenado_y_dentro_de_las_fechas(self):
@@ -105,7 +106,7 @@ class PruebasPermisos(unittest.TestCase):
         hasta = datetime.now()
         return repositorio._consultar_todos(
             "CALL historico_lecturas(%s, %s, %s, %s, %s)",
-            (id_usuario, variable, hasta - timedelta(days=1), hasta, 10),
+            (id_usuario, variable, hasta - timedelta(days=60), hasta, 10),
             config.USUARIOS_PERFIL[perfil],
         )
 
