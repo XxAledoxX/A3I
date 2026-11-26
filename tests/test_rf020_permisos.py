@@ -15,6 +15,7 @@ import pymysql
 
 from app import config
 from app.model import repositorio
+from tests.bd import CUENTA_BLOQUEADA, CUENTA_DESACTIVADA
 
 # Dispositivos y variables de cada sector (db/005_datos_planta.sql)
 GENERAL = {"barrera", "camara"}
@@ -199,20 +200,16 @@ class PruebasSuplantacion(PruebasBase):
                 with self.subTest(perfil=perfil, procedimiento=procedimiento):
                     self.assertEqual(_llamar(procedimiento, 999999, perfil), [])
 
-    def test_cuenta_bloqueada_no_ve_nada(self):
-        login = "tech1"
-        try:
-            for _ in range(config.MAX_INTENTOS_FALLIDOS):
-                repositorio.registrar_fallo(login, config.MAX_INTENTOS_FALLIDOS)
-            self.assertEqual(repositorio.buscar_por_login(login)["estado"], "bloqueado")
-            self.assertEqual(_llamar("estado_equipos", self.ids[login], "tech"), [])
-        finally:
-            # a3i_app (Sprint 1) sigue pudiendo cambiar el estado: solo para dejarlo como estaba
-            with repositorio._conectar() as conexion, conexion.cursor() as cursor:
-                cursor.execute(
-                    "UPDATE usuario SET intentos_fallidos = 0, estado = 'activo' WHERE login = %s",
-                    (login,),
-                )
+    def test_cuenta_bloqueada_o_desactivada_no_ve_nada(self):
+        # Mismo perfil y sector que tech1, que sí ve los equipos de general
+        self.assertTrue(_llamar("estado_equipos", self.ids["tech1"], "tech"))
+        for login, _ in (CUENTA_BLOQUEADA, CUENTA_DESACTIVADA):
+            id_usuario = repositorio.buscar_por_login(login)["id_usuario"]
+            for procedimiento in PROCEDIMIENTOS_DATOS:
+                with self.subTest(login=login, procedimiento=procedimiento):
+                    filas = _llamar(procedimiento, id_usuario, "tech")
+                    # La llama la ven todos los activos, pero estos no
+                    self.assertEqual(filas, [])
 
 
 class PruebasPermisosBD(PruebasBase):

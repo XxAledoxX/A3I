@@ -23,7 +23,7 @@ Cada rama de tarea lleva su archivo en `tareas/` con el nombre del alumno y la t
    pip install -r requirements.txt
    ```
    En Windows: `.venv\Scripts\activate` en vez de `source .venv/bin/activate`.
-3. **`.env`:** copia la plantilla y genera las 6 contraseñas con el bucle de [db/README.md](db/README.md).
+3. **`.env`:** copia la plantilla y genera las 5 contraseñas con el bucle de [db/README.md](db/README.md).
    ```
    cp .env.example .env
    ```

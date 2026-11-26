@@ -22,7 +22,6 @@ leer_password() {
     printf '%s' "$valor"
 }
 
-password="$(leer_password DB_PASSWORD)"
 password_login="$(leer_password DB_PASSWORD_LOGIN)"
 password_cientificos="$(leer_password DB_PASSWORD_CIENTIFICOS)"
 password_seguridad="$(leer_password DB_PASSWORD_SEGURIDAD)"
@@ -33,7 +32,6 @@ scripts=("$raiz"/db/[0-9][0-9][0-9]_*.sql)
 
 # Las contraseñas se pasan por la entrada estándar para que no salgan en ps
 {
-    printf "SET @a3i_app_password = '%s';\n" "$password"
     printf "SET @a3i_login_password = '%s';\n" "$password_login"
     printf "SET @a3i_cientificos_password = '%s';\n" "$password_cientificos"
     printf "SET @a3i_seguridad_password = '%s';\n" "$password_seguridad"

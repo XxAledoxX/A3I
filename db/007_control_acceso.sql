@@ -5,6 +5,9 @@
 SET NAMES utf8mb4;
 USE a3i;
 
+-- a3i_app era el usuario único del Sprint 1. Se borra también en los equipos que ya lo tienen
+DROP USER IF EXISTS 'a3i_app'@'localhost', 'a3i_app'@'127.0.0.1';
+
 DELIMITER //
 
 -- Crea el usuario en localhost (socket) y en 127.0.0.1 (TCP)

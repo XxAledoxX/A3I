@@ -35,11 +35,7 @@ class ErrorBaseDatos(Exception):
     pass
 
 
-def _conectar(usuario: str | None = None,
-              contrasena: str | None = None) -> pymysql.connections.Connection:
-    """Abre una conexión. Sin usuario, usa el de DB_USER del .env."""
-    if usuario is None:
-        usuario, contrasena = config.DB_USER, config.DB_PASSWORD
+def _conectar(usuario: str, contrasena: str) -> pymysql.connections.Connection:
     try:
         return pymysql.connect(
             host=config.DB_HOST,
@@ -68,10 +64,10 @@ def _comprobar_parametros(parametros: tuple) -> None:
 
 
 def _consultar_uno(sql: str, parametros: tuple,
-                   credenciales: Credenciales | None = None) -> dict | None:
+                   credenciales: Credenciales) -> dict | None:
     _comprobar_parametros(parametros)
     try:
-        with _conectar(*(credenciales or ())) as conexion, conexion.cursor() as cursor:
+        with _conectar(*credenciales) as conexion, conexion.cursor() as cursor:
             cursor.execute(sql, parametros)
             return cursor.fetchone()
     except pymysql.Error as error:
@@ -79,10 +75,10 @@ def _consultar_uno(sql: str, parametros: tuple,
 
 
 def _consultar_todos(sql: str, parametros: tuple,
-                     credenciales: Credenciales | None = None) -> list[dict]:
+                     credenciales: Credenciales) -> list[dict]:
     _comprobar_parametros(parametros)
     try:
-        with _conectar(*(credenciales or ())) as conexion, conexion.cursor() as cursor:
+        with _conectar(*credenciales) as conexion, conexion.cursor() as cursor:
             cursor.execute(sql, parametros)
             return list(cursor.fetchall())
     except pymysql.Error as error:
@@ -90,10 +86,10 @@ def _consultar_todos(sql: str, parametros: tuple,
 
 
 def _ejecutar(sql: str, parametros: tuple,
-              credenciales: Credenciales | None = None) -> None:
+              credenciales: Credenciales) -> None:
     _comprobar_parametros(parametros)
     try:
-        with _conectar(*(credenciales or ())) as conexion, conexion.cursor() as cursor:
+        with _conectar(*credenciales) as conexion, conexion.cursor() as cursor:
             cursor.execute(sql, parametros)
     except pymysql.Error as error:
         raise ErrorBaseDatos("Error al modificar la base de datos") from error

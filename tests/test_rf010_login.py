@@ -4,9 +4,9 @@ Solo credenciales válidas, contraseña errónea y usuario inexistente. El
 bloqueo de cuenta y las sesiones están en test_rf010_bloqueo_sesion.py.
 
 Las pruebas con BD usan la de prueba (./db/reset_db.sh) y se saltan si
-MariaDB no está disponible. Un fallo suma un intento a la cuenta, así que
-se dejan los intentos como estaban. Las del controlador no usan BD y van
-con Qt sin pantalla (QT_QPA_PLATFORM=offscreen).
+MariaDB no está disponible. Cada una va en una transacción que se deshace
+al acabar (tests/bd.py). Las del controlador no usan BD y van con Qt sin
+pantalla (QT_QPA_PLATFORM=offscreen).
 
     python -m unittest -v tests.test_rf010_login
 """
@@ -17,13 +17,13 @@ from unittest import mock
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-import pymysql
 from PySide6.QtWidgets import QApplication
 
 from app.controller import controlador_login
 from app.controller.controlador_login import ControladorLogin
 from app.model import autenticacion, repositorio
 from app.model.usuario import Usuario
+from tests.bd import PruebaConTransaccion, estado_cuentas, hay_bd
 
 # Usuarios de prueba de db/003_datos_prueba.sql (ver db/README.md)
 USUARIOS_PRUEBA = {
@@ -47,24 +47,6 @@ USUARIO_EJEMPLO = Usuario(
 )
 
 
-def _hay_bd() -> bool:
-    try:
-        repositorio._conectar().close()
-        return True
-    except (pymysql.Error, repositorio.ErrorBaseDatos):
-        return False
-
-
-def _estado_cuentas() -> dict[str, tuple]:
-    """Intentos fallidos y estado de todas las cuentas."""
-    with repositorio._conectar() as conexion, conexion.cursor() as cursor:
-        cursor.execute("SELECT login, intentos_fallidos, estado FROM usuario")
-        return {
-            fila["login"]: (fila["intentos_fallidos"], fila["estado"])
-            for fila in cursor.fetchall()
-        }
-
-
 def _contrasenas_erroneas(contrasena: str) -> tuple[str, ...]:
     return (
         "",
@@ -77,18 +59,15 @@ def _contrasenas_erroneas(contrasena: str) -> tuple[str, ...]:
     )
 
 
-@unittest.skipUnless(_hay_bd(), "MariaDB no disponible")
-class PruebasLoginEnBD(unittest.TestCase):
+@unittest.skipUnless(hay_bd(), "MariaDB no disponible")
+class PruebasLoginEnBD(PruebaConTransaccion):
 
     def setUp(self):
-        self.cuentas_antes = _estado_cuentas()
+        super().setUp()
+        self.cuentas_antes = estado_cuentas()
         for login, (intentos, estado) in self.cuentas_antes.items():
             if estado != "activo":
                 self.skipTest(f"{login} está {estado}: ejecuta ./db/reset_db.sh")
-
-    def tearDown(self):
-        # Deja los intentos como estaban aunque la prueba falle
-        self._restaurar_intentos()
 
     def _restaurar_intentos(self):
         for login, (intentos, _) in self.cuentas_antes.items():
@@ -117,7 +96,7 @@ class PruebasLoginEnBD(unittest.TestCase):
     def test_credenciales_validas_no_suman_fallos(self):
         for login, contrasena in USUARIOS_PRUEBA.items():
             autenticacion.autenticar(login, contrasena)
-        self.assertEqual(_estado_cuentas(), self.cuentas_antes)
+        self.assertEqual(estado_cuentas(), self.cuentas_antes)
 
     # Contraseña errónea
 
@@ -142,7 +121,7 @@ class PruebasLoginEnBD(unittest.TestCase):
         esperado = dict(self.cuentas_antes)
         intentos, estado = esperado["tech1"]
         esperado["tech1"] = (intentos + 1, estado)
-        self.assertEqual(_estado_cuentas(), esperado)
+        self.assertEqual(estado_cuentas(), esperado)
 
     def test_login_correcto_despues_de_un_fallo(self):
         self.assertIsNone(autenticacion.autenticar("tech1", "incorrecta"))
@@ -166,7 +145,7 @@ class PruebasLoginEnBD(unittest.TestCase):
     def test_usuario_inexistente_no_cambia_cuentas(self):
         for login in INEXISTENTES:
             autenticacion.autenticar(login, "incorrecta")
-        self.assertEqual(_estado_cuentas(), self.cuentas_antes)
+        self.assertEqual(estado_cuentas(), self.cuentas_antes)
 
 
 class PruebasControlador(unittest.TestCase):
@@ -241,8 +220,8 @@ class PruebasControlador(unittest.TestCase):
         )
 
 
-@unittest.skipUnless(_hay_bd(), "MariaDB no disponible")
-class PruebasMismoMensajeEnBD(unittest.TestCase):
+@unittest.skipUnless(hay_bd(), "MariaDB no disponible")
+class PruebasMismoMensajeEnBD(PruebaConTransaccion):
     """De punta a punta: contraseña errónea e inexistente se ven igual."""
 
     @classmethod
@@ -250,14 +229,11 @@ class PruebasMismoMensajeEnBD(unittest.TestCase):
         cls.app = QApplication.instance() or QApplication([])
 
     def setUp(self):
-        self.intentos_antes = repositorio.buscar_por_login("tech1")["intentos_fallidos"]
+        super().setUp()
         self.controlador = ControladorLogin()
         self.ventana_login = self.controlador.ventana_login
 
     def tearDown(self):
-        fila = repositorio.buscar_por_login("tech1")
-        if fila["intentos_fallidos"] != self.intentos_antes:
-            repositorio.actualizar_intentos(fila["id_usuario"], self.intentos_antes)
         self.ventana_login.close()
         self.ventana_login.deleteLater()
 

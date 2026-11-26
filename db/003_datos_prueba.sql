@@ -66,3 +66,15 @@ VALUES
      '$argon2id$v=19$m=65536,t=3,p=4$7LwK7gTHWyaXokBD6bOQwg$XCL0L0epxjLttwGkhYKmiDZGIwcJsuUUmIf8dcIcNcw',
      'jefe_perfil', 3, 'tech',
      (SELECT id_sector FROM sector WHERE nombre = 'critico'));
+
+-- Cuentas que ya empiezan bloqueada y desactivada, para probarlas sin cambiar el estado de otras
+INSERT INTO usuario (nombre, login, hash_contrasena, intentos_fallidos, estado, rango, nivel, perfil, id_sector)
+VALUES
+    ('Tomás Gil', 'tech_bloqueado',
+     '$argon2id$v=19$m=65536,t=3,p=4$7fDC8oacKWwz8vKgDg16FQ$rm8jXiLAPWwHs6Bb5qJiY9vVYRhcUrR0yOKPPlJYgxE',
+     5, 'bloqueado', 'empleado', 1, 'tech',
+     (SELECT id_sector FROM sector WHERE nombre = 'general')),
+    ('Nuria Pastor', 'tech_desactivado',
+     '$argon2id$v=19$m=65536,t=3,p=4$s9sFwXV1JLAEq4LG0rSOcw$WTxjENyH6ZsuAuNOmYHC9GytaUmCDgytEAvoHb83cL4',
+     0, 'desactivado', 'empleado', 1, 'tech',
+     (SELECT id_sector FROM sector WHERE nombre = 'general'));
