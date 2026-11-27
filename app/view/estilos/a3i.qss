@@ -94,6 +94,11 @@ QFrame[tipo="tarjeta"] {
     border-radius: 12px;
 }
 
+/* Alerta elegida en el tablero */
+QFrame[tipo="tarjeta"][seleccionada="true"] {
+    border: 2px solid @turquesa;
+}
+
 /* Zona con scroll de los paneles: sin borde y con el fondo de la ventana */
 QScrollArea[tipo="panel"] {
     border: none;
