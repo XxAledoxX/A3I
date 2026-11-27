@@ -27,7 +27,7 @@ La aplicación no lee las tablas: solo ejecuta procedimientos (`db/007_control_a
 | Usuario | Para qué | Puede ejecutar |
 |---|---|---|
 | `a3i_login` | Iniciar sesión | `buscar_usuario`, `registrar_fallo`, `actualizar_intentos`, `actualizar_hash` |
-| `a3i_cientificos`, `a3i_seguridad`, `a3i_tech` | Datos tras el login, según el perfil | `ultimas_lecturas`, `estado_actuadores`, `estado_equipos`, `historico_lecturas`, `mis_notificaciones`, `marcar_notificacion_leida` |
+| `a3i_cientificos`, `a3i_seguridad`, `a3i_tech` | Datos tras el login, según el perfil | `ultimas_lecturas`, `estado_actuadores`, `estado_equipos`, `historico_lecturas`, `alertas_usuario`, `mis_notificaciones`, `marcar_notificacion_leida` |
 | `a3i_simulador` | El simulador de lecturas (`db/006_lecturas_historico.sql`) | Nada: solo `SELECT` en `variable` e `INSERT` en `lectura` |
 
 Los procedimientos de datos solo devuelven algo si el usuario de BD que llama es el del perfil del usuario: desde DBeaver con root salen vacíos.

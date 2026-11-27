@@ -51,3 +51,6 @@ SEGUNDOS_SIMULADOR = 5
 
 # Máximo de puntos que devuelve el histórico de una variable
 PUNTOS_HISTORICO = 300
+
+# Horas que las alertas resueltas siguen en la columna Done
+HORAS_ALERTAS_RESUELTAS = 24

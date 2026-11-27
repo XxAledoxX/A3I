@@ -185,6 +185,14 @@ def historico_lecturas(id_usuario: int, variable: str, desde: datetime,
     )
 
 
+
+def alertas_usuario(id_usuario: int,
+                    horas: int = config.HORAS_ALERTAS_RESUELTAS) -> list[dict]:
+    """Alertas activas que ve el usuario y las resueltas en las últimas horas."""
+    return _consultar_todos(
+        "CALL alertas_usuario(%s, %s)", (id_usuario, horas), _credenciales_perfil()
+    )
+
 # Avisos (RF-006), con el usuario de BD del perfil
 
 def mis_notificaciones(id_usuario: int) -> list[dict]:

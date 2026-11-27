@@ -170,3 +170,52 @@ BEGIN
 END //
 
 DELIMITER ;
+
+-- Alertas que ve el usuario (RF-040): las de las variables que ve, con la
+-- misma regla que ultimas_lecturas. Tech no tiene lista de alertas. Las
+-- resueltas, solo las de las últimas p_horas horas
+USE a3i;
+
+DELIMITER //
+
+CREATE PROCEDURE alertas_usuario(IN p_id_usuario INT, IN p_horas INT)
+BEGIN
+    SELECT a.id_alerta, v.nombre AS variable, v.unidad, s.nombre AS sector,
+           a.tipo, a.estado, li.valor, li.fecha_hora,
+           la.valor AS valor_alarma, la.fecha_hora AS fecha_alarma,
+           v.minimo_normal, v.maximo_normal,
+           e.nombre AS encargado, a.fecha_asignacion, a.fecha_terminada,
+           a.motivo_devolucion, r.nombre AS revisor, a.fecha_resolucion
+    FROM usuario u
+    CROSS JOIN alerta a
+    JOIN variable v ON v.id_variable = a.id_variable
+    JOIN dispositivo d ON d.id_dispositivo = v.id_sensor
+    JOIN sector s ON s.id_sector = d.id_sector
+    JOIN a3i_lecturas.lectura li ON li.id_lectura = a.id_lectura
+    LEFT JOIN a3i_lecturas.lectura la ON la.id_lectura = a.id_lectura_alarma
+    LEFT JOIN usuario e ON e.id_usuario = a.id_encargado
+    LEFT JOIN usuario r ON r.id_usuario = a.id_revisor
+    WHERE u.id_usuario = p_id_usuario
+      AND u.estado = 'activo'
+      AND u.perfil <> 'tech'
+      AND CONCAT('a3i_', u.perfil) = SUBSTRING_INDEX(USER(), '@', 1)
+      AND (d.visible_todos
+           OR (u.perfil = s.perfil
+               AND (u.id_sector = s.id_sector
+                    OR (u.rango IN ('jefe_perfil', 'subjefe_perfil')
+                        AND s.nivel <= u.nivel))))
+      AND (a.estado <> 'resuelta'
+           OR a.fecha_resolucion >= NOW() - INTERVAL GREATEST(IFNULL(p_horas, 24), 0) HOUR)
+    -- Por columna del tablero, primero las alarmas y luego las más recientes
+    ORDER BY FIELD(a.estado, 'pendiente', 'en_curso', 'por_revisar', 'resuelta'),
+             a.tipo = 'alarma' DESC, li.fecha_hora DESC;
+END //
+
+DELIMITER ;
+
+GRANT EXECUTE ON PROCEDURE a3i.alertas_usuario TO
+    'a3i_cientificos'@'localhost', 'a3i_cientificos'@'127.0.0.1',
+    'a3i_seguridad'@'localhost', 'a3i_seguridad'@'127.0.0.1',
+    'a3i_tech'@'localhost', 'a3i_tech'@'127.0.0.1';
+
+FLUSH PRIVILEGES;
