@@ -20,6 +20,17 @@ Hay que repetirlo después de cada `git pull` que cambie algo en `db/`.
 
 Si MariaDB se actualiza y el reset da `Column count of mysql.proc is wrong`, ejecuta `sudo mariadb-upgrade` y reinicia MariaDB (`sudo systemctl restart mariadb`). En Arch, todo con `sudo`, porque root entra por `unix_socket`.
 
+## Pruebas de restricciones
+
+`tests/sql/` tiene inserciones que tienen que fallar por un CHECK, una UNIQUE o una PK. Cada archivo acaba con ROLLBACK y no deja datos. Después del reset:
+
+```
+sudo mariadb --force < tests/sql/pruebas_010.sql
+sudo mariadb --force < tests/sql/pruebas_013.sql
+```
+
+`--force` sigue tras cada error. Cada inserción marcada con «FALLA» tiene que dar error con el nombre de su restricción.
+
 ## Usuarios de BD
 
 La aplicación no lee las tablas: solo ejecuta procedimientos (`db/007_control_acceso.sql`).

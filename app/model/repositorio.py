@@ -35,6 +35,21 @@ class ErrorBaseDatos(Exception):
     pass
 
 
+class ErrorRegla(ErrorBaseDatos):
+    """La BD ha rechazado la operación por una regla; el mensaje es el de la BD."""
+
+
+# Error de MariaDB cuando un procedimiento hace SIGNAL
+ERROR_SIGNAL = 1644
+
+
+def _error(error: pymysql.Error, mensaje: str) -> ErrorBaseDatos:
+    """ErrorRegla con el mensaje de la BD si fue un SIGNAL; si no, ErrorBaseDatos."""
+    if error.args and error.args[0] == ERROR_SIGNAL:
+        return ErrorRegla(error.args[1])
+    return ErrorBaseDatos(mensaje)
+
+
 def _conectar(usuario: str, contrasena: str) -> pymysql.connections.Connection:
     try:
         return pymysql.connect(
@@ -71,7 +86,7 @@ def _consultar_uno(sql: str, parametros: tuple,
             cursor.execute(sql, parametros)
             return cursor.fetchone()
     except pymysql.Error as error:
-        raise ErrorBaseDatos("Error al consultar la base de datos") from error
+        raise _error(error, "Error al consultar la base de datos") from error
 
 
 def _consultar_todos(sql: str, parametros: tuple,
@@ -82,7 +97,7 @@ def _consultar_todos(sql: str, parametros: tuple,
             cursor.execute(sql, parametros)
             return list(cursor.fetchall())
     except pymysql.Error as error:
-        raise ErrorBaseDatos("Error al consultar la base de datos") from error
+        raise _error(error, "Error al consultar la base de datos") from error
 
 
 def _ejecutar(sql: str, parametros: tuple,
@@ -92,7 +107,7 @@ def _ejecutar(sql: str, parametros: tuple,
         with _conectar(*credenciales) as conexion, conexion.cursor() as cursor:
             cursor.execute(sql, parametros)
     except pymysql.Error as error:
-        raise ErrorBaseDatos("Error al modificar la base de datos") from error
+        raise _error(error, "Error al modificar la base de datos") from error
 
 
 def _credenciales_login() -> Credenciales:
@@ -199,6 +214,44 @@ def marcar_notificacion_leida(id_usuario: int, id_notificacion: int) -> None:
         "CALL marcar_notificacion_leida(%s, %s)",
         (id_usuario, id_notificacion),
         _credenciales_perfil(),
+    )
+
+
+# Solicitudes, con el usuario de BD del perfil. Las reglas las comprueba la BD
+# y, si no se cumplen, llegan como ErrorRegla
+
+def crear_solicitud(id_usuario: int, tipo: str, prioridad: str, motivo: str,
+                    id_sector: int, duracion_min: int,
+                    id_dispositivo: int | None) -> int:
+    """Crea una solicitud pendiente y devuelve su id."""
+    fila = _consultar_uno(
+        "CALL crear_solicitud(%s, %s, %s, %s, %s, %s, %s)",
+        (id_usuario, tipo, prioridad, motivo, id_sector, duracion_min, id_dispositivo),
+        _credenciales_perfil(),
+    )
+    return fila["id_solicitud"]
+
+
+def mis_solicitudes(id_usuario: int) -> list[dict]:
+    """Solicitudes del usuario, la más nueva primero."""
+    return _consultar_todos(
+        "CALL mis_solicitudes(%s)", (id_usuario,), _credenciales_perfil()
+    )
+
+
+def cancelar_solicitud(id_usuario: int, id_solicitud: int) -> None:
+    _ejecutar(
+        "CALL cancelar_solicitud(%s, %s)", (id_usuario, id_solicitud), _credenciales_perfil()
+    )
+
+
+def sectores(id_usuario: int) -> list[dict]:
+    return _consultar_todos("CALL sectores(%s)", (id_usuario,), _credenciales_perfil())
+
+
+def dispositivos_sector(id_usuario: int, id_sector: int) -> list[dict]:
+    return _consultar_todos(
+        "CALL dispositivos_sector(%s, %s)", (id_usuario, id_sector), _credenciales_perfil()
     )
 
 
