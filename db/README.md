@@ -34,6 +34,8 @@ Los procedimientos de datos solo devuelven algo si el usuario de BD que llama es
 
 ## Lecturas
 
+Cada lectura nueva pasa por el trigger de `db/011_alertas.sql`: crea un aviso si el valor está a menos del 10 % del ancho del rango de un límite y una alarma si se sale del rango o hay fuego (una sola alerta activa por variable). El reset trae las alertas del histórico, todas resueltas. Para ver alguna nueva: `python simulador.py --una-vez --fuera-de-rango`.
+
 Cuando una cuenta se bloquea, el trigger de `db/012_notificaciones.sql` avisa al jefe y al subjefe de Seguridad y del perfil de la cuenta (RF-006). `tech_bloqueado` ya trae sus avisos.
 
 El reset mete 30 días de histórico (`db/006_lecturas_historico.sql`): una lectura cada 15 min de cada variable, hasta la hora del reset. Hay dos fuegos (hace 12 y 4 días) y algunos valores fuera del rango normal.
