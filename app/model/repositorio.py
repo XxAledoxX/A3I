@@ -255,6 +255,29 @@ def dispositivos_sector(id_usuario: int, id_sector: int) -> list[dict]:
     )
 
 
+# Aprobaciones (RF-076), con el usuario de BD del perfil
+
+def por_aprobar(id_usuario: int) -> list[dict]:
+    """Solicitudes pendientes que el usuario puede aprobar o rechazar."""
+    return _consultar_todos("CALL por_aprobar(%s)", (id_usuario,), _credenciales_perfil())
+
+
+def _decidir(id_usuario: int, id_solicitud: int, decision: str, comentario: str) -> None:
+    _ejecutar(
+        "CALL decidir_solicitud(%s, %s, %s, %s)",
+        (id_usuario, id_solicitud, decision, comentario),
+        _credenciales_perfil(),
+    )
+
+
+def aprobar_solicitud(id_usuario: int, id_solicitud: int, comentario: str = "") -> None:
+    _decidir(id_usuario, id_solicitud, "aceptada", comentario)
+
+
+def rechazar_solicitud(id_usuario: int, id_solicitud: int, comentario: str = "") -> None:
+    _decidir(id_usuario, id_solicitud, "rechazada", comentario)
+
+
 # Simulador de lecturas (RF-029), con a3i_simulador
 
 def _credenciales_simulador() -> Credenciales:
