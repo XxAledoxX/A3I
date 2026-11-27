@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 from app.view.panel_equipos import PanelEquipos
 from app.view.panel_planta import PanelPlanta
 from app.view.panel_seguridad import PanelSeguridad
+from app.view.vista_alertas import VistaAlertas
 from app.view.vista_historico import VistaHistorico
 
 LOGO = Path(__file__).resolve().parent / "estilos" / "logo_icono.png"
@@ -32,7 +33,8 @@ MENUS = {
         ("Gestión", ["Mis solicitudes", "Por aprobar", "Registro"]),
     ],
     "seguridad": [
-        ("Instalación", ["Cámaras", "Puertas y accesos", "Cronología", "Niveles"]),
+        ("Instalación", ["Cámaras", "Avisos y alarmas", "Puertas y accesos", "Cronología",
+                         "Niveles"]),
         ("Gestión", ["Mis solicitudes", "Por aprobar", "Registro"]),
     ],
     "tech": [
@@ -98,6 +100,7 @@ class VentanaPrincipal(QMainWindow):
         # El controlador le pasa las lecturas al panel del perfil
         self.panel: PanelPlanta | PanelSeguridad | PanelEquipos | None = None
         self.historico: VistaHistorico | None = None
+        self.alertas: VistaAlertas | None = None
         self.paginas = QStackedWidget()
         cuerpo.addWidget(self._menu(secciones_menu(perfil, rango)))
         cuerpo.addWidget(self.paginas, 1)
@@ -192,6 +195,9 @@ class VentanaPrincipal(QMainWindow):
         if titulo == "Histórico":
             self.historico = VistaHistorico(titulo)
             return self.historico
+        if titulo == "Avisos y alarmas":
+            self.alertas = VistaAlertas(titulo)
+            return self.alertas
 
         # El resto de secciones, de momento, son páginas vacías
         pagina = QWidget()

@@ -6,6 +6,7 @@ from PySide6.QtCore import QEvent, QObject, QTimer
 from PySide6.QtWidgets import QApplication
 
 from app import config
+from app.controller.controlador_alertas import ControladorAlertas
 from app.controller.controlador_historico import ControladorHistorico
 from app.controller.controlador_panel import ControladorPanel
 from app.model import autenticacion, repositorio
@@ -42,6 +43,7 @@ class ControladorLogin:
         self.ventana_principal: VentanaPrincipal | None = None
         self.controlador_panel: ControladorPanel | None = None
         self.controlador_historico: ControladorHistorico | None = None
+        self.controlador_alertas: ControladorAlertas | None = None
         self.ventana_login.login_pedido.connect(self.iniciar_sesion)
 
         self.temporizador = QTimer()
@@ -83,6 +85,12 @@ class ControladorLogin:
             self.controlador_historico = ControladorHistorico(
                 self.ventana_principal.historico, usuario.id_usuario
             )
+        if self.ventana_principal.alertas is not None:
+            self.controlador_alertas = ControladorAlertas(
+                self.ventana_principal.alertas, usuario.id_usuario
+            )
+            self._avisar_sin_conexion(self.controlador_alertas)
+            self.controlador_alertas.iniciar()
 
     def iniciar_refresco(self, usuario: Usuario) -> None:
         """Pide los datos del panel cada pocos segundos (RF-017) con su usuario."""
@@ -92,13 +100,14 @@ class ControladorLogin:
         self.controlador_panel = ControladorPanel(
             ventana.panel, partial(repositorio.datos_panel, usuario.id_usuario)
         )
-        self.controlador_panel.error_conexion.connect(
-            partial(ventana.mostrar_sin_conexion, True)
-        )
-        self.controlador_panel.datos_recibidos.connect(
-            partial(ventana.mostrar_sin_conexion, False)
-        )
+        self._avisar_sin_conexion(self.controlador_panel)
         self.controlador_panel.iniciar()
+
+    def _avisar_sin_conexion(self, controlador: ControladorPanel) -> None:
+        """Enseña u oculta el aviso de «Sin conexión» de la cabecera (RF-018)."""
+        ventana = self.ventana_principal
+        controlador.error_conexion.connect(partial(ventana.mostrar_sin_conexion, True))
+        controlador.datos_recibidos.connect(partial(ventana.mostrar_sin_conexion, False))
 
     def _terminar_sesion(self) -> None:
         """Para el temporizador y el hilo del refresco y cierra la sesión."""
@@ -108,6 +117,9 @@ class ControladorLogin:
             self.controlador_panel.parar()
             self.controlador_panel = None
         self.controlador_historico = None
+        if self.controlador_alertas is not None:
+            self.controlador_alertas.parar()
+            self.controlador_alertas = None
         autenticacion.cerrar_sesion()
 
     def cerrar_sesion(self) -> None:
